@@ -76,8 +76,13 @@ char* next_string(FILE* json) {
 
 double next_number(FILE* json) {
   double value;
-  fscanf(json, "%f", &value);
-  // Error check this..
+  char c = fscanf(json, "%f", &value);
+  if (c == EOF){
+    fprintf(stderr, "Error: Unexpected end of file");
+    exit(1);
+  }else if (c != 1){
+    fprintf(stderr, "Error: Pull wrong number of numbers");
+    exit(1);
   return value;
 }
 
