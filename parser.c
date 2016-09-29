@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include "structures.c"
 
 int line = 1;
 
@@ -83,6 +85,7 @@ double next_number(FILE* json) {
   }else if (c != 1){
     fprintf(stderr, "Error: Pull wrong number of numbers");
     exit(1);
+  }
   return value;
 }
 
@@ -105,7 +108,7 @@ double* next_vector(FILE* json) {
 }
 
 
-void read_scene(char* filename) {
+void read_scene(Object** objects, char* filename)  {
   int c;
   FILE* json = fopen(filename, "r");
 
@@ -115,14 +118,14 @@ void read_scene(char* filename) {
   }
   
   skip_ws(json);
-  
+
   // Find the beginning of the list
   expect_c(json, '[');
 
   skip_ws(json);
 
   // Find the objects
-
+  int index = 1;
   while (1) {
     c = fgetc(json);
     if (c == ']') {
@@ -147,10 +150,25 @@ void read_scene(char* filename) {
       skip_ws(json);
 
       char* value = next_string(json);
-
+      Object* o;
       if (strcmp(value, "camera") == 0) {
+	if (objects[0] != NULL){
+	  fprintf(stderr, "Error: Second cameras found on line number %d.\n",line);
+	  exit(1);
+	}
+	o = malloc(sizeof(Camera));
+	o->id = 1;
+	objects[0] = o;	
       } else if (strcmp(value, "sphere") == 0) {
+	o = malloc(sizeof(Sphere));
+	o->id = 2;
+	objects[index] = o;
+	index += 1;
       } else if (strcmp(value, "plane") == 0) {
+	o = malloc(sizeof(Plane));
+        o->id = 3;
+	objects[index] = o;
+	index += 1;
       } else {
 	fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 	exit(1);
@@ -171,14 +189,60 @@ void read_scene(char* filename) {
 	  skip_ws(json);
 	  expect_c(json, ':');
 	  skip_ws(json);
-	  if ((strcmp(key, "width") == 0) ||
-	      (strcmp(key, "height") == 0) ||
-	      (strcmp(key, "radius") == 0)) {
+	  double value = next_number(json);
+	  if (strcmp(key, "width") == 0){
+	    if (o->id != 1){
+	      fprintf(stderr, "Error: Width applied to non-camera object");
+	      exit(1);
+	    }
+	    ((Camera*) o)->width = value;
+	  }else if(strcmp(key, "height") == 0){
 	    double value = next_number(json);
-	  } else if ((strcmp(key, "color") == 0) ||
-		     (strcmp(key, "position") == 0) ||
-		     (strcmp(key, "normal") == 0)) {
+	    if (o->id != 1){
+	      fprintf(stderr, "Error: Height applied to non-camera object");
+	      exit(1);
+	    }
+	    ((Camera*) o)->height = value;
+	  }else if (strcmp(key, "radius") == 0) {
+	    double value = next_number(json);
+	    if (o->id != 2){
+	      fprintf(stderr, "Error: Radius applied to non-sphere object");
+	      exit(1);
+	    }
+	    ((Sphere*) o)->radius = value;
+	  } else if (strcmp(key, "color") == 0){
 	    double* value = next_vector(json);
+	    switch (o->id){
+	    case 2:
+	      ((Sphere*) o)->color = value;
+	      break;
+	    case 3:
+	      ((Plane*) o)->color = value;
+	      break;
+	    default:
+	      fprintf(stderr, "Error: Color applied to non-colorable object");
+	      exit(1);
+	    }
+	  } else if (strcmp(key, "position") == 0){
+	    double* value = next_vector(json);
+	    switch (o->id){
+	    case 2:
+	      ((Sphere*) o)->pos = value;
+	      break;
+	    case 3:
+	      ((Plane*) o)->pos = value;
+	      break;
+	    default:
+	      fprintf(stderr, "Error: Color applied to non-colorable object");
+	      exit(1);
+	    }
+	  } else if (strcmp(key, "normal") == 0) {
+	    double* value = next_vector(json);
+	    if (o->id != 3){
+	      fprintf(stderr, "Error: Normal vector given to non-plane object");
+	      exit(1);
+	    }
+	    ((Plane*) o)->normal = value;
 	  } else {
 	    fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
 		    key, line);
@@ -207,6 +271,7 @@ void read_scene(char* filename) {
 }
 
 int main(int c, char** argv) {
-  read_scene(argv[1]);
+  Object** objects= malloc(sizeof(Object*)); 
+  read_scene(objects, argv[1]);
   return 0;
 }
