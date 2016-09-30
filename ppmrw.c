@@ -60,7 +60,7 @@ char read_char(FILE* fh){
 		fprintf(stderr, "Error: Invalid P3 format.\n");
 		exit(1);
 	}
-	fscanf(fh, "%i", &a);
+	fscanf(fh, "%i",(int*) (&a));
 	return a;
 }
 
