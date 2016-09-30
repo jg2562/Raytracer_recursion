@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "structures.c"
 #include "ppmrw.c"
 // Plymorphism in C
 
@@ -97,12 +96,16 @@ double cylinder_intersection(double* Ro, double* Rd,
   return -1;
 }
 
-int main() {
+Image* paint_scene() {
 
   Object** objects;
   objects = malloc(sizeof(Object*)*2);
   objects[0] = malloc(sizeof(Object));
   objects[0]->kind = 0;
+  objects[0]->color[0] = 0;
+  objects[0]->color[1] = 0;
+  objects[0]->color[2] = 255;
+  
   objects[0]->cylinder.radius = 2;
   // object[0]->teapot.handle_length = 2;
   objects[0]->cylinder.center[0] = 0;
@@ -118,6 +121,12 @@ int main() {
   int M = 20;
   int N = 20;
 
+  Image* img = malloc(sizeof(Image));
+  img->width = N;
+  img->height = M;
+  img->max_value = 255;
+  img->buffer = malloc(sizeof(Pixel) * M * N);
+
   double pixheight = h / M;
   double pixwidth = w / N;
   for (int y = 0; y < M; y += 1) {
@@ -132,6 +141,7 @@ int main() {
       normalize(Rd);
 
       double best_t = INFINITY;
+      int best_i = -1;
       for (int i=0; objects[i] != 0; i += 1) {
 	double t = 0;
 
@@ -145,17 +155,37 @@ int main() {
 	  // Horrible error
 	  exit(1);
 	}
-	if (t > 0 && t < best_t) best_t = t;
+	if (t > 0 && t < best_t){
+	  best_t = t;
+	  best_i = i;
+	}
       }
-      if (best_t > 0 && best_t != INFINITY) {
-	printf("#");
+      if (best_t > 0 && best_t != INFINITY && (objects[best_i]->kind == 0 || objects[best_i]->kind == 1)) {
+	double* color = objects[best_i]->color;
+	Pixel pix;
+	pix.r = color[0];
+	pix.g = color[1];
+	pix.b = color[2];
+	printf("%d %d %d\n",color[0], color[1], color[2]);
+	img->buffer[y * N + x] = pix;
       } else {
-	printf(".");
+	double* color = objects[best_i]->color;
+	Pixel pix;
+	pix.r = 0;
+	pix.g = 0;
+	pix.b = 0;
+	img->buffer[y * N + x] = pix;
+	
       }
       
     }
     printf("\n");
   }
   
-  return 0;
+  return img;
+}
+
+int main(int argc, char* argv[]){
+  Image* img = paint_scene();
+  write_file(fopen("scene.ppm","wb"), img, 6);
 }
