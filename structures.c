@@ -10,16 +10,16 @@ typedef struct {
 
 typedef struct {
   int id;// ID: 2
-  double* color;
-  double* pos;
+  double color[3];
+  double pos[3];
   double radius;
 } Sphere;
 
 typedef struct {
   int id;// ID: 3
-  double* color;
-  double* pos;
-  double* normal;
+  double color[3];
+  double pos[3];
+  double normal[3];
 } Plane;
 
 typedef struct {
