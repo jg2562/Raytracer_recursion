@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 build: 
-	gcc raycaster.c -o raycaster.o
+	gcc raycaster.c -o raycaster.o -lm
 
 clean:
 	rm -f *.o
