@@ -198,6 +198,7 @@ Scene* read_scene(char* filename)  {
 #ifdef DEBUG2
 					printf("Processing Key: %s...",key);
 #endif
+					// Determines the key, and then applies value to correct object type
 					skip_ws(json);
 					if (strcmp(key, "width") == 0){
 						double value = next_number(json);
@@ -253,6 +254,7 @@ Scene* read_scene(char* filename)  {
 							fprintf(stderr, "Error: Normal vector given to non-plane object.\n");
 							exit(1);
 						}
+						normalize(value);
 						((Plane*) o)->normal = value;
 					} else {
 						fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",

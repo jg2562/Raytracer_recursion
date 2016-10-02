@@ -1,5 +1,6 @@
 #ifndef PRIM_OBJ_STRUCTS_INCLUDED
 #define PRIM_OBJ_STRUCTS_INCLUDED
+
 typedef struct {
   int id; // ID: 0
 } Object;
@@ -32,5 +33,16 @@ typedef struct {
   Camera* cam;
   Object** objects;
 } Scene;
+
+static inline double sqr(double v) {
+	return v*v;
+}
+
+static inline void normalize(double* v) {
+	double len = sqrt(sqr(v[0]) + sqr(v[1]) + sqr(v[2]));
+	v[0] /= len;
+	v[1] /= len;
+	v[2] /= len;
+}
 
 #endif

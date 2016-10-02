@@ -5,18 +5,13 @@
 #include "ppmrw.c"
 #include "parser.c"
 
-static inline double sqr(double v) {
-	return v*v;
-}
-
-
-static inline void normalize(double* v) {
-	double len = sqrt(sqr(v[0]) + sqr(v[1]) + sqr(v[2]));
-	v[0] /= len;
-	v[1] /= len;
-	v[2] /= len;
-}
-
+/*
+  Finds sphere intersection point with given ray
+  Ro: Ray origin vector
+  Rd: Ray direction vector
+  C: Sphere center position vector
+  r: Sphere radius
+ */
 double sphere_intersection(double* Ro, double* Rd, double* C, double r){
 	double a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
 	double b =  2 * (Rd[0] * (Ro[0] - C[0]) + Rd[1] * (Ro[1] - C[1]) + Rd[2] * (Ro[2] - C[2]));
@@ -26,6 +21,7 @@ double sphere_intersection(double* Ro, double* Rd, double* C, double r){
   
 	det = sqrt(det);
 
+	// Tests which is the closest one and in front of camera.
 	double t = (-b - det)/(2 * a);
 	if (t > 0) return t;
 	t = (-b + det)/(2 * a);
@@ -34,19 +30,31 @@ double sphere_intersection(double* Ro, double* Rd, double* C, double r){
 	return -1;
 }
 
-int plane_intersection(double* Ro, double* Rd, double* p, double* n){
+/*
+  Finds plane intersection point with given ray
+  Ro: Ray origin vector
+  Rd: Ray direction vector
+  p: Plane position vector
+  n: Plane normal vector
+
+ */
+double plane_intersection(double* Ro, double* Rd, double* p, double* n){
 	// a(xr - x0) + b(yr - y0,) + c(zr - z0) = 0
 	double top = (n[0] * Ro[0] - n[0] * p[0] + n[1] * Ro[1] - n[1] * p[1] + n[2] * Ro[2] - n[2] * p[2]);
-	double bottom = (- 1 * ((n[0] * Rd[0] + n[1] * Rd[1] + n[2] * Rd[2])));
-	double t = top / bottom;
+	double bottom = (n[0] * Rd[0] + n[1] * Rd[1] + n[2] * Rd[2]);
+	double t = -1 * top / bottom;
 
-	if (t > 0) {
-		return t;
-	}
+	if (t > 0) return t;
   
 	return -1;
 }
 
+/*
+  Paints the scene to an image using ray casting
+  scene: The scene to be painted
+  height: the height of the final image
+  width: the width of the final image
+ */
 Image* paint_scene(Scene* scene, int height, int width) {
 	Object** objects = scene->objects;
 	double cx = 0;
@@ -62,7 +70,8 @@ Image* paint_scene(Scene* scene, int height, int width) {
 	img->height = M;
 	img->max_value = 255;
 	img->buffer = malloc(sizeof(Pixel) * M * N);
-	
+
+	// Finds the color for each pixel and stores it
 	double pixheight = h / M;
 	double pixwidth = w / N;
 	for (int y = 0; y < M; y += 1) {
@@ -70,13 +79,15 @@ Image* paint_scene(Scene* scene, int height, int width) {
 			double Ro[3] = {0, 0, 0};
 			// Rd = normalize(P - Ro)
 			double Rd[3] = {
-				cx - (w/2) + pixwidth * (x + 0.5),
-				cy - (h/2) + pixheight * (y + 0.5),
+				cx + (w/2) - pixwidth * (x + 0.5),
+				cy + (h/2) - pixheight * (y + 0.5),
 				1
 			};
 			normalize(Rd);
 			double best_t = INFINITY;
 			int best_i = -1;
+
+			// Finds the closest object on the ray
 			for (int i=0; objects[i] != 0; i += 1) {
 				double t = 0;
 
@@ -103,34 +114,65 @@ Image* paint_scene(Scene* scene, int height, int width) {
 					best_t = t;
 					best_i = i;
 				}
-      
-				if (best_t > 0 && best_t != INFINITY && (objects[best_i]->id == 2 || objects[best_i]->id == 3)) {
-					double* color = ((Sphere*)objects[best_i])->color;
-					Pixel pix;
-					pix.r = color[0];
-					pix.g = color[1];
-					pix.b = color[2];
-					img->buffer[y * N + x] = pix;
-				} else {
-					Pixel pix;
-					pix.r = 0;
-					pix.g = 0;
-					pix.b = 0;
-					img->buffer[y * N + x] = pix;
-				}
+			}
+
+			// Gets the closest object for color. 
+			if (best_t > 0 && best_t != INFINITY && (objects[best_i]->id == 2 || objects[best_i]->id == 3)) {
+				double* color = ((Sphere*)objects[best_i])->color;
+				Pixel pix;
+				pix.r = color[0];
+				pix.g = color[1];
+				pix.b = color[2];
+				img->buffer[y * N + x] = pix;
+			} else {
+				Pixel pix;
+				pix.r = 0;
+				pix.g = 0;
+				pix.b = 0;
+				img->buffer[y * N + x] = pix;
 			}
 		}
 	}
 	return img;
 }
+
+
 int main(int argc, char* argv[]){
-	char* filename = "setup.json";
-	Scene* scene = read_scene(filename);
-	if (scene->cam == NULL){
-		fprintf(stderr,"Error: No camera found\n");
+	if (argc != 5){
+		fprintf(stderr, "Proper Usage: raycast width height input.json output.ppm\n");
 		exit(1);
 	}
 
-	Image* img = paint_scene(scene, 500,500);
-	write_file(fopen("scene.ppm","wb"), img, 6);
+	// Checks if supplied arguments are valid
+	int width, height;
+	if (width = atoi(argv[1]), width <= 0){
+		fprintf(stderr, "Error: Invalid width.\n");
+		exit(1);
+	}
+	
+	if (height = atoi(argv[2]), height <= 0){
+		fprintf(stderr, "Error: Invalid height.\n");
+		exit(1);
+	}
+
+	FILE* out = fopen(argv[4],"wb");
+	if (out == NULL){
+		fprintf(stderr, "Error: Output file write access.\n");
+		exit(1);
+	}
+
+	// Reads in scene file
+	Scene* scene = read_scene(argv[3]);
+
+	// Checks if scene has camera
+	if (scene->cam == NULL){
+		fprintf(stderr,"Error: No camera found.\n");
+		exit(1);
+	}
+
+	// Paints scene into image file using raycasting
+	Image* img = paint_scene(scene, height, width);
+
+	// Write image to file
+	write_file(out, img, 6);
 }
