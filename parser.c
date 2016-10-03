@@ -202,28 +202,48 @@ Scene* read_scene(char* filename)  {
 					skip_ws(json);
 					if (strcmp(key, "width") == 0){
 						double value = next_number(json);
+
+						// Width error checking
 						if (o->id != 1){
 							fprintf(stderr, "Error: Width applied to non-camera object.\n");
 							exit(1);
+						} else if (value <= 0){
+							fprintf(stderr, "Error: Invalid width on line %d.\n", line);
+							exit(1);
 						}
+						
 						((Camera*) o)->width = value;
 					}else if(strcmp(key, "height") == 0){
 						double value = next_number(json);
+
+						// Height error checking
 						if (o->id != 1){
 							fprintf(stderr, "Error: Height applied to non-camera object.\n");
+							exit(1);
+						} else if (value <= 0){
+							fprintf(stderr,"Error: Invalid height on line %d.\n", line);
 							exit(1);
 						}
 						((Camera*) o)->height = value;
 					}else if (strcmp(key, "radius") == 0) {
 						double value = next_number(json);
 
+						// Error checking for radius
 						if (o->id != 2){
 							fprintf(stderr, "Error: Radius applied to non-sphere object.\n");
+							exit(1);
+						}else if(value <= 0){
+							fprintf(stderr,"Error: Invalid radius on line %d.\n", line);
 							exit(1);
 						}
 						((Sphere*) o)->radius = value;
 					} else if (strcmp(key, "color") == 0){
 						double* value = next_vector(json);
+						// Error checking for color
+						if (value[0] < 0 || value[0] > 255 || value[1] < 0||value[1] > 255 || value[2] < 0 || value[2] > 255){
+							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
+							exit(1);
+						}
 						switch (o->id){
 						case 2:
 							((Sphere*) o)->color = value;
@@ -237,6 +257,7 @@ Scene* read_scene(char* filename)  {
 						}
 					} else if (strcmp(key, "position") == 0){
 						double* value = next_vector(json);
+						
 						switch (o->id){
 						case 2:
 							((Sphere*) o)->pos = value;

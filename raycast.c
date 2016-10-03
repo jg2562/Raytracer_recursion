@@ -86,7 +86,7 @@ Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
 								   p->normal);
 			break;
 		default:
-			fprintf(stderr, "Unsupported object during rendering with Id: %d\n", objects[i]->id);
+			fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", objects[i]->id);
 			exit(1);
 		}
 		// If distance is shorter, replace it
@@ -199,6 +199,7 @@ int main(int argc, char* argv[]){
 	// Reads in scene file
 	Scene* scene = read_scene(argv[3]);
 
+	
 	// Checks if scene has camera
 	if (scene->cam == NULL){
 		fprintf(stderr,"Error: No camera found.\n");
