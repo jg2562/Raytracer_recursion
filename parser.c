@@ -87,7 +87,7 @@ double next_number(FILE* json) {
 		fprintf(stderr, "Error: Unexpected end of file\n");
 		exit(1);
 	}else if (c != 1){
-		fprintf(stderr, "Error: Pulled invalid amount of numbers, pulled: %d, on line %d\n", value, line);
+		fprintf(stderr, "Error: Given invalid number, on line %d\n", value, line);
 		exit(1);
 	}
 	return value;
@@ -259,6 +259,7 @@ Scene* read_scene(char* filename)  {
 					} else {
 						fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
 								key, line);
+						exit(1);
 						//char* value = next_string(json);
 					}
 					skip_ws(json);
