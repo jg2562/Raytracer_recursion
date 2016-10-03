@@ -6,16 +6,19 @@
 #include "parser.c"
 
 /*
-  Finds sphere intersection point with given ray
-  Ro: Ray origin vector
-  Rd: Ray direction vector
-  C: Sphere center position vector
-  r: Sphere radius
+  Finds sphere intersection point with given ray.
+  Ro: Ray origin vector.
+  Rd: Ray direction vector.
+  C: Sphere center position vector.
+  r: Sphere radius.
 */
 double sphere_intersection(double* Ro, double* Rd, double* C, double r){
+	// Finds A,B, and C for the quadratic equation
 	double a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
 	double b =  2 * (Rd[0] * (Ro[0] - C[0]) + Rd[1] * (Ro[1] - C[1]) + Rd[2] * (Ro[2] - C[2]));
 	double c = sqr(Ro[0] - C[0]) + sqr(Ro[1] - C[1]) + sqr(Ro[2] - C[2]) - sqr(r);
+
+	// Find the determinte for the quadratic equation
 	double det = sqr(b) - 4 * a * c;
 	if (det < 0) return -1;
   
@@ -31,15 +34,16 @@ double sphere_intersection(double* Ro, double* Rd, double* C, double r){
 }
 
 /*
-  Finds plane intersection point with given ray
-  Ro: Ray origin vector
-  Rd: Ray direction vector
-  p: Plane position vector
-  n: Plane normal vector
+  Finds plane intersection point with given ray.
+  Ro: Ray origin vector.
+  Rd: Ray direction vector.
+  p: Plane position vector.
+  n: Plane normal vector.
 
 */
 double plane_intersection(double* Ro, double* Rd, double* p, double* n){
 	// a(xr - x0) + b(yr - y0,) + c(zr - z0) = 0
+	// Split plane equation into top and bottom half for understandability
 	double top = (n[0] * Ro[0] - n[0] * p[0] + n[1] * Ro[1] - n[1] * p[1] + n[2] * Ro[2] - n[2] * p[2]);
 	double bottom = (n[0] * Rd[0] + n[1] * Rd[1] + n[2] * Rd[2]);
 	double t = -1 * top / bottom;
@@ -48,8 +52,9 @@ double plane_intersection(double* Ro, double* Rd, double* p, double* n){
   
 	return -1;
 }
+
 /*
-  Casts ray to find first interaction with object
+  Casts ray to find first interaction with object.
   ray_len: The double address to return the length of the ray to.
   objects: The objects in the scene.
   Ro: The origin vector of the ray.
@@ -64,6 +69,7 @@ Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
 	for (int i=0; objects[i] != 0; i += 1) {
 		double t = 0;
 
+		// Determines what type of object intersection test needs to be performed
 		switch(objects[i]->id) {
 		case 2 :
 			;
@@ -83,27 +89,29 @@ Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
 			fprintf(stderr, "Unsupported object during rendering with Id: %d\n", objects[i]->id);
 			exit(1);
 		}
+		// If distance is shorter, replace it
 		if (t > 0 && t < best_t){
 			best_t = t;
 			best_i = i;
 		}
 	}
 
-	// Gets the closest object for color. 
-	if (best_t > 0 && best_t != INFINITY && best_i != -1) {
+	// Returns the object with best intersection
+	if (best_i != -1) {
+		// Assigns ray length for returning
 		*ray_len = best_t;
 		return objects[best_i];
 	} else {
-		*ret_t = -1;
+		ray_len = NULL;
 		return NULL;
 	}
 }
 
 /*
-  Paints the scene to an image using ray casting
-  scene: The scene to be painted
-  height: the height of the final image
-  width: the width of the final image
+  Paints the scene to an image using ray casting.
+  scene: The scene to be painted.
+  height: the height of the final image.
+  width: the width of the final image.
 */
 Image* paint_scene(Scene* scene, int height, int width) {
 	Object** objects = scene->objects;
@@ -126,17 +134,24 @@ Image* paint_scene(Scene* scene, int height, int width) {
 	double pixwidth = w / N;
 	for (int y = 0; y < M; y += 1) {
 		for (int x = 0; x < N; x += 1) {
+			// Assumes ray starts at origin
 			double Ro[3] = {0, 0, 0};
 			// Rd = normalize(P - Ro)
+
+			// Gets ray direction
 			double Rd[3] = {
 				cx + (w/2) - pixwidth * (x + 0.5),
 				cy + (h/2) - pixheight * (y + 0.5),
 				1
 			};
+			
 			normalize(Rd);
 
+			// Casts ray
 			double t;
 			Object* object = cast_ray(&t, objects, Ro, Rd);
+
+			// Gets object color for pixel
 			Pixel pix;
 			if (object != NULL){
 				double* color = ((Sphere*)object)->color;
@@ -156,7 +171,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 
 int main(int argc, char* argv[]){
-
+	// Checks for proper amount of arguments
 	if (argc != 5){
 		fprintf(stderr, "Proper Usage: raycast width height input.json output.ppm\n");
 		exit(1);
@@ -174,6 +189,7 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
+	// Checks file opened properly
 	FILE* out = fopen(argv[4],"wb");
 	if (out == NULL){
 		fprintf(stderr, "Error: Output file write access.\n");
@@ -189,8 +205,6 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
-	Plane* plane = ((Plane*) scene->objects[4]);
-	double* color = plane->color;
 	// Paints scene into image file using raycasting
 	Image* img = paint_scene(scene, height, width);
 
