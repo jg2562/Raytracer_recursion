@@ -8,6 +8,7 @@ clean:
 	rm -f *~
 	rm -f *.ppm
 	rm -f *.stackdump
+	rm -f *#
 
 clear :
 	clear
