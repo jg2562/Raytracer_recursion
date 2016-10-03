@@ -11,7 +11,7 @@
   Rd: Ray direction vector
   C: Sphere center position vector
   r: Sphere radius
- */
+*/
 double sphere_intersection(double* Ro, double* Rd, double* C, double r){
 	double a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
 	double b =  2 * (Rd[0] * (Ro[0] - C[0]) + Rd[1] * (Ro[1] - C[1]) + Rd[2] * (Ro[2] - C[2]));
@@ -37,7 +37,7 @@ double sphere_intersection(double* Ro, double* Rd, double* C, double r){
   p: Plane position vector
   n: Plane normal vector
 
- */
+*/
 double plane_intersection(double* Ro, double* Rd, double* p, double* n){
 	// a(xr - x0) + b(yr - y0,) + c(zr - z0) = 0
 	double top = (n[0] * Ro[0] - n[0] * p[0] + n[1] * Ro[1] - n[1] * p[1] + n[2] * Ro[2] - n[2] * p[2]);
@@ -48,13 +48,63 @@ double plane_intersection(double* Ro, double* Rd, double* p, double* n){
   
 	return -1;
 }
+/*
+  Casts ray to find first interaction with object
+  ray_len: The double address to return the length of the ray to.
+  objects: The objects in the scene.
+  Ro: The origin vector of the ray.
+  Rd: The direction vector of the ray.
+ */
+Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
+
+	double best_t = INFINITY;
+	int best_i = -1;
+
+	// Finds the closest object on the ray
+	for (int i=0; objects[i] != 0; i += 1) {
+		double t = 0;
+
+		switch(objects[i]->id) {
+		case 2 :
+			;
+			Sphere* s = (Sphere*) objects[i];
+			t = sphere_intersection(Ro, Rd,
+									s->pos,
+									s->radius);
+			break;
+		case 3 :
+			;
+			Plane* p = (Plane*) objects[i];
+			t = plane_intersection(Ro, Rd,
+								   p->pos,
+								   p->normal);
+			break;
+		default:
+			fprintf(stderr, "Unsupported object during rendering with Id: %d\n", objects[i]->id);
+			exit(1);
+		}
+		if (t > 0 && t < best_t){
+			best_t = t;
+			best_i = i;
+		}
+	}
+
+	// Gets the closest object for color. 
+	if (best_t > 0 && best_t != INFINITY && best_i != -1) {
+		*ray_len = best_t;
+		return objects[best_i];
+	} else {
+		*ret_t = -1;
+		return NULL;
+	}
+}
 
 /*
   Paints the scene to an image using ray casting
   scene: The scene to be painted
   height: the height of the final image
   width: the width of the final image
- */
+*/
 Image* paint_scene(Scene* scene, int height, int width) {
 	Object** objects = scene->objects;
 	double cx = 0;
@@ -70,7 +120,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 	img->height = M;
 	img->max_value = 255;
 	img->buffer = malloc(sizeof(Pixel) * M * N);
-
+	
 	// Finds the color for each pixel and stores it
 	double pixheight = h / M;
 	double pixwidth = w / N;
@@ -84,53 +134,21 @@ Image* paint_scene(Scene* scene, int height, int width) {
 				1
 			};
 			normalize(Rd);
-			double best_t = INFINITY;
-			int best_i = -1;
 
-			// Finds the closest object on the ray
-			for (int i=0; objects[i] != 0; i += 1) {
-				double t = 0;
-
-				switch(objects[i]->id) {
-				case 2 :
-					;
-					Sphere* s = (Sphere*) objects[i];
-					t = sphere_intersection(Ro, Rd,
-											s->pos,
-											s->radius);
-					break;
-				case 3 :
-					;
-					Plane* p = (Plane*) objects[i];
-					t = plane_intersection(Ro, Rd,
-										   p->pos,
-										   p->normal);
-					break;
-				default:
-					fprintf(stderr, "Unsupported object during rendering with Id: %d\n", objects[i]->id);
-					exit(1);
-				}
-				if (t > 0 && t < best_t){
-					best_t = t;
-					best_i = i;
-				}
-			}
-
-			// Gets the closest object for color. 
-			if (best_t > 0 && best_t != INFINITY && (objects[best_i]->id == 2 || objects[best_i]->id == 3)) {
-				double* color = ((Sphere*)objects[best_i])->color;
-				Pixel pix;
+			double t;
+			Object* object = cast_ray(&t, objects, Ro, Rd);
+			Pixel pix;
+			if (object != NULL){
+				double* color = ((Sphere*)object)->color;
 				pix.r = color[0];
 				pix.g = color[1];
 				pix.b = color[2];
-				img->buffer[y * N + x] = pix;
 			} else {
-				Pixel pix;
 				pix.r = 0;
 				pix.g = 0;
 				pix.b = 0;
-				img->buffer[y * N + x] = pix;
 			}
+			img->buffer[y * N + x] = pix;
 		}
 	}
 	return img;
@@ -138,6 +156,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 
 int main(int argc, char* argv[]){
+
 	if (argc != 5){
 		fprintf(stderr, "Proper Usage: raycast width height input.json output.ppm\n");
 		exit(1);
@@ -170,6 +189,8 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
+	Plane* plane = ((Plane*) scene->objects[4]);
+	double* color = plane->color;
 	// Paints scene into image file using raycasting
 	Image* img = paint_scene(scene, height, width);
 
