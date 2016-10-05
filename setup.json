@@ -1,4 +1,5 @@
 [
+	
     {
 		"type":"camera",
 		"width":1,
@@ -6,31 +7,31 @@
     },
     {
 		"type":"sphere",
-		"color":[255,0,0],
+		"color":[1,0,0],
 		"position":[0.5,-0.43301,5],
 		"radius":1
     },
     {
 		"type":"sphere",
-		"color":[0,255,0],
+		"color":[0,1,0],
 		"position":[-0.5,-0.43301,5],
 		"radius":1
     },
     {
 		"type":"sphere",
-		"color":[0,0,255],
+		"color":[0,0,1],
 		"position":[0,0.43301,5],
 		"radius":1
     },
     {
 		"type":"plane",
-		"color":[34,139,34],
+		"color":[0.133,0.545,0.133],
 		"position":[0,-1.2,0],
 		"normal":[0,1,0 ]
     },
     {
 		"type":"plane",
-		"color":[126,192,238],
+		"color":[0.494,0.753,0.933],
 		"position":[0,0,6],
 		"normal":[0,0,1]
     }

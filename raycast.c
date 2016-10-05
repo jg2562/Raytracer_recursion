@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include "structures.h"
 #include "ppmrw.c"
 #include "parser.c"
+
 
 /*
   Finds sphere intersection point with given ray.
@@ -155,9 +157,9 @@ Image* paint_scene(Scene* scene, int height, int width) {
 			Pixel pix;
 			if (object != NULL){
 				double* color = ((Sphere*)object)->color;
-				pix.r = color[0];
-				pix.g = color[1];
-				pix.b = color[2];
+				pix.r = color[0] * 255;
+				pix.g = color[1] * 255;
+				pix.b = color[2] * 255;
 			} else {
 				pix.r = 0;
 				pix.g = 0;
@@ -189,17 +191,14 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
-	// Checks file opened properly
-	FILE* out = fopen(argv[4],"wb");
-	if (out == NULL){
+	if (access(argv[4],W_OK) == 0){
 		fprintf(stderr, "Error: Output file write access.\n");
 		exit(1);
 	}
-
+	
 	// Reads in scene file
 	Scene* scene = read_scene(argv[3]);
 
-	
 	// Checks if scene has camera
 	if (scene->cam == NULL){
 		fprintf(stderr,"Error: No camera found.\n");
@@ -209,6 +208,15 @@ int main(int argc, char* argv[]){
 	// Paints scene into image file using raycasting
 	Image* img = paint_scene(scene, height, width);
 
+	// Checks file opened properly
+	FILE* out = fopen(argv[4],"wb");
+	if (out == NULL){
+		fprintf(stderr, "Error: Output file write access.\n");
+		exit(1);
+	}
+	
 	// Write image to file
 	write_file(out, img, 6);
+    fclose(out);
+
 }

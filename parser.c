@@ -84,10 +84,10 @@ double next_number(FILE* json) {
 	double value;
 	char c = fscanf(json, "%lf", &value);
 	if (c == EOF){
-		fprintf(stderr, "Error: Unexpected end of file\n");
+		fprintf(stderr, "Error: Unexpected end of file.\n");
 		exit(1);
 	}else if (c != 1){
-		fprintf(stderr, "Error: Given invalid number, on line %d\n", value, line);
+		fprintf(stderr, "Error: Given invalid number, on line %d.\n", value, line);
 		exit(1);
 	}
 	return value;
@@ -240,10 +240,11 @@ Scene* read_scene(char* filename)  {
 					} else if (strcmp(key, "color") == 0){
 						double* value = next_vector(json);
 						// Error checking for color
-						if (value[0] < 0 || value[0] > 255 || value[1] < 0||value[1] > 255 || value[2] < 0 || value[2] > 255){
+						if (value[0] < 0 || value[0] > 1 || value[1] < 0||value[1] > 1 || value[2] < 0 || value[2] > 1){
 							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
 							exit(1);
 						}
+						// Decides proper struct type
 						switch (o->id){
 						case 2:
 							((Sphere*) o)->color = value;
@@ -257,7 +258,8 @@ Scene* read_scene(char* filename)  {
 						}
 					} else if (strcmp(key, "position") == 0){
 						double* value = next_vector(json);
-						
+
+						// Decides proper struct type
 						switch (o->id){
 						case 2:
 							((Sphere*) o)->pos = value;
@@ -292,6 +294,7 @@ Scene* read_scene(char* filename)  {
 					exit(1);
 				}
 			}
+			// Assumes end of object
 			skip_ws(json);
 			c = next_c(json);
 			if (c == ',') {
@@ -304,6 +307,9 @@ Scene* read_scene(char* filename)  {
 				fprintf(stderr, "Error: Expecting ',' or ']' on line %d.\n", line);
 				exit(1);
 			}
+		} else {
+			fprintf(stderr, "Error: Unexpecting char '%c' on line %d.\n",c, line);
+			exit(1);
 		}
 	}
 	objects[index] = NULL;
