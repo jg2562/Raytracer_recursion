@@ -87,7 +87,7 @@ double next_number(FILE* json) {
 		fprintf(stderr, "Error: Unexpected end of file.\n");
 		exit(1);
 	}else if (c != 1){
-		fprintf(stderr, "Error: Given invalid number, on line %d.\n", value, line);
+		fprintf(stderr, "Error: Given invalid number, on line %d.\n", line);
 		exit(1);
 	}
 	return value;
