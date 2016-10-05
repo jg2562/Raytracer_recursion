@@ -1,10 +1,10 @@
 SHELL = /bin/sh
 
 build: 
-	gcc raycast.c -o raycast.o -lm
+	gcc raycast.c -o raycast -lm
 
 clean:
-	rm -f *.o
+	rm -f raycast
 	rm -f *~
 	rm -f *.ppm
 	rm -f *.stackdump
@@ -16,4 +16,4 @@ clear :
 rebuild: clean build
 
 retest: rebuild
-	./raycast.o 500 500 setup.json scene.ppm
+	./raycast 500 500 setup.json scene.ppm
