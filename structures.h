@@ -3,39 +3,50 @@
 
 // Blank structure
 typedef struct {
-  int id; // ID: 0
+	int id; // ID: 0
 } Object;
 
 // Different object structure
 typedef struct {
-  int id; // ID: 1
-  double width;
-  double height;
+	int id; // ID: 1
+	double width;
+	double height;
 } Camera;
 
 typedef struct {
-  int id;// ID: 2
-  double* color;
-  double* pos;
-  double radius;
+	int id;// ID: 2
+	double* color;
+	double* pos;
+	double radius;
 } Sphere;
 
 typedef struct {
-  int id;// ID: 3
-  double* color;
-  double* pos;
-  double* normal;
+	int id;// ID: 3
+	double* color;
+	double* pos;
+	double* normal;
 } Plane;
 
 // In case I get bored and want to add quadrics
 typedef struct {
-  int id;// ID: 4
+	int id;// ID: 4
+	double* pos;
+	double A;
+	double B;
+	double C;
+	double D;
+	double E;
+	double F;
+	double G;
+	double H;
+	double I;
+	double J;
 } Quadric;
 
 // Basic scene file
 typedef struct {
-  Camera* cam;
-  Object** objects;
+	Camera* cam;
+	Object** objects;
 } Scene;
 
 // Square function
