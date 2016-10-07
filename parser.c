@@ -176,6 +176,11 @@ Scene* read_scene(char* filename)  {
 				o->id = 3;
 				objects[index] = o;
 				index += 1;
+			} else if (strcmp(value, "quadric") == 0){
+				o = malloc(sizeof(Quadric));
+				o->id = 4;
+				objects[index] = o;
+				index += 1;
 			} else {
 				fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 				exit(1);
@@ -252,6 +257,9 @@ Scene* read_scene(char* filename)  {
 						case 3:
 							((Plane*) o)->color = value;
 							break;
+						case 4:
+							((Quadric*) o)->color = value;
+							break;
 						default:
 							fprintf(stderr, "Error: Color applied to non-colorable object.\n");
 							exit(1);
@@ -267,6 +275,9 @@ Scene* read_scene(char* filename)  {
 						case 3:
 							((Plane*) o)->pos = value;
 							break;
+						case 4:
+							((Quadric*) o)->pos = value;
+							break;
 						default:
 							fprintf(stderr, "Error: Color applied to non-colorable object.\n");
 							exit(1);
@@ -279,6 +290,45 @@ Scene* read_scene(char* filename)  {
 						}
 						normalize(value);
 						((Plane*) o)->normal = value;
+					} else if (key[1] == 0){
+						Quadric* q = (Quadric*) o;
+						double value = next_number(json);
+						switch (key[0]){
+						case 'A':
+							q->A = value;
+							break;
+						case 'B':
+							q->B = value;
+							break;
+						case 'C':
+							q->C = value;
+							break;
+						case 'D':
+							q->D = value;
+							break;
+						case 'E':
+							q->E = value;
+							break;
+						case 'F':
+							q->F = value;
+							break;
+						case 'G':
+							q->G = value;
+							break;
+						case 'H':
+							q->H = value;
+							break;
+						case 'I':
+							q->I = value;
+							break;
+						case 'J':
+							q->J = value;
+							break;
+						default:
+							fprintf(stderr, "Error: Unknown property, \"%s\" on line %d.\n",
+									key, line);
+							exit(1);
+						}
 					} else {
 						fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
 								key, line);
@@ -315,8 +365,11 @@ Scene* read_scene(char* filename)  {
 	Quadric* q = malloc(sizeof(Quadric));
 	q->id = 4;
 	q->pos = malloc(sizeof(double) * 3);
-	q->pos[2] = 5;
+	q->pos[2] = 4;
 	q->A = 1;
+	q->B = 1;
+	q->C = 1;
+	q->J = -1;
 	objects[index] = (Object*) q;
 	index += 1;
 	objects[index] = NULL;
