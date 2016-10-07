@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 build: 
-	gcc raycast.c -o raycast -lm
+	gcc raycast.c ppmrw.c parser.c -o raycast -lm
 
 clean:
 	rm -f raycast
