@@ -61,7 +61,6 @@ char read_char(FILE* fh){
 	buffer: buffer to store file data. 
 */
 void read_type_3(FILE* fh, Image* img){
-	int *a = malloc(sizeof(int));
 	unsigned int i;
 	for (i = 0; i < img->height * img->width; i += 1){
 		// Changes data from binary to Pixel structure format

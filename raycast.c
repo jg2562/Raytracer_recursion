@@ -170,7 +170,51 @@ Image* paint_scene(Scene* scene, int height, int width) {
 	}
 	return img;
 }
+void free_image(Image* img){
+	free(img->buffer);
+	free(img);
+}
 
+void free_scene(Scene* scene){
+	Object** objects = scene->objects;
+	Object* object;
+	for (int i = 0; objects[i] != 0; i += 1){
+		object = objects[i];
+		switch (object->id){
+		case 0:
+			;
+			free(object);
+			break;
+		case 1:
+			;
+			break;
+		case 2:
+			;
+			Sphere* s = (Sphere*) object;
+			free(s->color);
+			free(s->pos);
+			free(s);
+			break;
+		case 3:
+			;
+			Plane* p = (Plane*) object;
+			free(p->color);
+			free(p->pos);
+			free(p);
+			break;
+		case 4:
+			;
+			Quadric* q = (Quadric*) object;
+			free(q);
+		default:
+			fprintf(stderr, "Invalid object with id %d during freeing of scene.\n", object->id);
+			exit(1);
+		}
+	}
+	free(objects);
+	free(scene->cam);
+	free(scene);
+}
 
 int main(int argc, char* argv[]){
 	// Checks for proper amount of arguments
@@ -208,6 +252,9 @@ int main(int argc, char* argv[]){
 	// Paints scene into image file using raycasting
 	Image* img = paint_scene(scene, height, width);
 
+	free_scene(scene);
+	scene = NULL;
+	
 	// Checks file opened properly
 	FILE* out = fopen(argv[4],"wb");
 	if (out == NULL){
@@ -217,6 +264,9 @@ int main(int argc, char* argv[]){
 	
 	// Write image to file
 	write_file(out, img, 6);
+	free_image(img);
+	img = NULL;
+	
     fclose(out);
 
 }
