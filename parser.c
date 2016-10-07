@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "structures.h"
+#include "parser.h"
 
 int line = 1;
 // next_c() wraps the getc() function and provides error checking and line

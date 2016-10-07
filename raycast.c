@@ -4,7 +4,7 @@
 #include <math.h>
 #include "structures.h"
 #include "ppmrw.h"
-#include "parser.c"
+#include "parser.h"
 
 
 /*
