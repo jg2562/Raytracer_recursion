@@ -103,6 +103,11 @@ Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
 								   p->pos,
 								   p->normal);
 			break;
+		case 4:
+			;
+			Quadric* q = (Quadric*) objects[i];
+			t = quadric_intersection(Ro, Rd, q);
+			break;
 		default:
 			fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", objects[i]->id);
 			exit(1);
