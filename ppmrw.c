@@ -1,17 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "ppmrw.h"
 int input_type;
 int output_type;
-
-typedef struct {
-	unsigned char r,g,b;
-} Pixel;
-
-typedef struct{
-	int width, height, max_value;
-	Pixel* buffer;
-} Image;
 
 /*
 	Used to peek at next char within file. 

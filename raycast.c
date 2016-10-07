@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <math.h>
 #include "structures.h"
-#include "ppmrw.c"
+#include "ppmrw.h"
 #include "parser.c"
 
 

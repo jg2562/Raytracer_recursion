@@ -1,6 +1,6 @@
 #ifndef PRIM_OBJ_STRUCTS_INCLUDED
 #define PRIM_OBJ_STRUCTS_INCLUDED
-
+#include <math.h>
 // Blank structure
 typedef struct {
   int id; // ID: 0
