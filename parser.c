@@ -362,16 +362,6 @@ Scene* read_scene(char* filename)  {
 			exit(1);
 		}
 	}
-	Quadric* q = malloc(sizeof(Quadric));
-	q->id = 4;
-	q->pos = malloc(sizeof(double) * 3);
-	q->pos[2] = 4;
-	q->A = 1;
-	q->B = 1;
-	q->C = 1;
-	q->J = -1;
-	objects[index] = (Object*) q;
-	index += 1;
 	objects[index] = NULL;
 	objects = realloc(objects, sizeof(Object*) * (index + 1));
 	scene->objects = objects;
