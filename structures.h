@@ -30,6 +30,7 @@ typedef struct {
 // In case I get bored and want to add quadrics
 typedef struct {
 	int id;// ID: 4
+	double* color;
 	double* pos;
 	double A;
 	double B;
