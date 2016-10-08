@@ -5,6 +5,7 @@ build:
 
 clean:
 	rm -f raycast
+	rm -f raycast.exe
 	rm -f *~
 	rm -f *.ppm
 	rm -f *.stackdump
