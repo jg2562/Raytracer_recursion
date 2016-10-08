@@ -227,6 +227,7 @@ void free_scene(Scene* scene){
 			;
 			Quadric* q = (Quadric*) object;
 			free(q);
+			break;
 		default:
 			fprintf(stderr, "Invalid object with id %d during freeing of scene.\n", object->id);
 			exit(1);
