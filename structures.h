@@ -17,6 +17,8 @@ typedef struct {
 	int id;// ID: 2
 	double* color;
 	double* pos;
+	double* diff_color;
+	double* spec_color;
 	double radius;
 } Sphere;
 
@@ -24,6 +26,8 @@ typedef struct {
 	int id;// ID: 3
 	double* color;
 	double* pos;
+	double* diff_color;
+	double* spec_color;
 	double* normal;
 } Plane;
 
@@ -32,6 +36,8 @@ typedef struct {
 	int id;// ID: 4
 	double* color;
 	double* pos;
+	double* diff_color;
+	double* spec_color;
 	double A;
 	double B;
 	double C;
