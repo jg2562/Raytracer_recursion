@@ -7,9 +7,9 @@
 #include "parser.c"
 
 double quadric_intersection(double* Ro, double* Rd, Quadric* quad){
-	double a = quad->A * sqr(Rd[0]) + quad->B * sqr(Rd[1]) + quad->C * sqr(Rd[2]) + quad->D * Rd[0] * Rd[1] + quad->E * Rd[0] * Rd[2] + quad->F * Rd[1] * Rd[2];
-	double b = 2 * (Ro[0] - quad->pos[0]) *  Rd[0] + 2 * quad->B * (Ro[1] - quad->pos[1]) * Rd[1] + 2 * quad->C * (Ro[2] - quad->pos[2]) * Rd[2] + quad->D * ((Ro[0] - quad->pos[0]) * Rd[1] + (Ro[1] - quad->pos[1]) * Rd[0]) + quad->E * (Ro[0] - quad->pos[0]) * Rd[2] + quad->F * ((Ro[1] - quad->pos[1]) * Rd[2] + Rd[1] * (Ro[2] - quad->pos[2])) + quad->G * Rd[0] + quad->H * Rd[2] + quad->I * Rd[2];
-	double c = quad->A * sqr((Ro[0] - quad->pos[0])) + quad->B * sqr((Ro[0] - quad->pos[0])) + quad->C * (Ro[2] - quad->pos[2]) + quad->D * (Ro[0] - quad->pos[0]) * (Ro[2] - quad->pos[2]) + quad->E * (Ro[0] - quad->pos[0]) * (Ro[2] - quad->pos[2]) + quad->F * Ro[1] * Ro[2] + quad->G * (Ro[0] - quad->pos[0]) + quad->H * (Ro[1] - quad->pos[1]) + quad->I * (Ro[2] - quad->pos[2]) + quad->J;
+	double a = (quad->A) * sqr(Rd[0]) + (quad->B) * sqr(Rd[1]) + (quad->C) * sqr(Rd[2]) + (quad->D) * (Rd[0]) * (Rd[1]) + (quad->E) * (Rd[0]) * (Rd[2]) + (quad->F) * (Rd[1]) * (Rd[2]);
+    double b = 2*(quad->A) * (Ro[0] - quad->pos[0]) * (Rd[0]) + 2*(quad->B) * (Ro[1] - quad->pos[1]) * (Rd[1]) + 2*(quad->C) * (Ro[2] - quad->pos[2]) * (Rd[2]) + (quad->D) * ((Ro[0] - quad->pos[0]) * (Rd[1]) + (Ro[1] - quad->pos[1]) * (Rd[0])) + (quad->E) * (Ro[0] - quad->pos[0]) * (Rd[2]) + (quad->F) * ((Ro[1] - quad->pos[1]) * (Rd[2]) + (Rd[1]) * (Ro[2] - quad->pos[2])) + (quad->G) * (Rd[0]) + (quad->H) * (Rd[1]) + (quad->I) * (Rd[2]);
+	double c = (quad->A) * sqr(Ro[0] - quad->pos[0]) + (quad->B) * sqr(Ro[1] - quad->pos[1]) + (quad->C) * sqr(Ro[2] - quad->pos[2]) + (quad->D) * (Ro[0] - quad->pos[0]) * (Ro[1] - quad->pos[1]) + (quad->E) * (Ro[0] - quad->pos[0]) * (Ro[2] - quad->pos[2]) + (quad->F) * (Ro[1] - quad->pos[1]) * (Ro[2] - quad->pos[2]) + (quad->G) * (Ro[0] - quad->pos[0]) + (quad->H) * (Ro[1] - quad->pos[1]) + (quad->I) * (Ro[2] - quad->pos[2]) + (quad->J);
 
 	double det = sqr(b) - 4 * a * c;
 	if (det < 0) return -1;
