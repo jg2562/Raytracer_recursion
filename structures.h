@@ -50,10 +50,22 @@ typedef struct {
 	double J;
 } Quadric;
 
+typedef struct {
+	int id;
+	double* color;
+	double* pos;
+	double* dir;
+	double r_a0;
+	double r_a1;
+	double r_a2;
+	double ang_a0;
+} Light
+
 // Basic scene file
 typedef struct {
 	Camera* cam;
 	Object** objects;
+	Light** lights;
 } Scene;
 
 // Square function
