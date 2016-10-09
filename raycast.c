@@ -2,26 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
+#include <string.h>
 #include "structures.h"
 #include "ppmrw.h"
 #include "parser.h"
-
-double quadric_intersection(double* Ro, double* Rd, Quadric* quad){
-	double a = (quad->A) * sqr(Rd[0]) + (quad->B) * sqr(Rd[1]) + (quad->C) * sqr(Rd[2]) + (quad->D) * (Rd[0]) * (Rd[1]) + (quad->E) * (Rd[0]) * (Rd[2]) + (quad->F) * (Rd[1]) * (Rd[2]);
-    double b = 2*(quad->A) * (Ro[0] - quad->pos[0]) * (Rd[0]) + 2*(quad->B) * (Ro[1] - quad->pos[1]) * (Rd[1]) + 2*(quad->C) * (Ro[2] - quad->pos[2]) * (Rd[2]) + (quad->D) * ((Ro[0] - quad->pos[0]) * (Rd[1]) + (Ro[1] - quad->pos[1]) * (Rd[0])) + (quad->E) * (Ro[0] - quad->pos[0]) * (Rd[2]) + (quad->F) * ((Ro[1] - quad->pos[1]) * (Rd[2]) + (Rd[1]) * (Ro[2] - quad->pos[2])) + (quad->G) * (Rd[0]) + (quad->H) * (Rd[1]) + (quad->I) * (Rd[2]);
-	double c = (quad->A) * sqr(Ro[0] - quad->pos[0]) + (quad->B) * sqr(Ro[1] - quad->pos[1]) + (quad->C) * sqr(Ro[2] - quad->pos[2]) + (quad->D) * (Ro[0] - quad->pos[0]) * (Ro[1] - quad->pos[1]) + (quad->E) * (Ro[0] - quad->pos[0]) * (Ro[2] - quad->pos[2]) + (quad->F) * (Ro[1] - quad->pos[1]) * (Ro[2] - quad->pos[2]) + (quad->G) * (Ro[0] - quad->pos[0]) + (quad->H) * (Ro[1] - quad->pos[1]) + (quad->I) * (Ro[2] - quad->pos[2]) + (quad->J);
-
-	double det = sqr(b) - 4 * a * c;
-	if (det < 0) return -1;
-	
-	// Tests which is the closest one and in front of camera.
-	double t = (-b - det)/(2 * a);
-	if (t > 0) return t;
-	t = (-b + det)/(2 * a);
-	if (t > 0) return t;
-
-	return -1;
-}
+#include "3dmath.h"
 
 /*
   Finds sphere intersection point with given ray.
@@ -69,6 +54,52 @@ double plane_intersection(double* Ro, double* Rd, double* p, double* n){
 	if (t > 0) return t;
   
 	return -1;
+}
+
+double quadric_intersection(double* Ro, double* Rd, Quadric* quad){
+	double a = (quad->A) * sqr(Rd[0]) + (quad->B) * sqr(Rd[1]) + (quad->C) * sqr(Rd[2]) + (quad->D) * (Rd[0]) * (Rd[1]) + (quad->E) * (Rd[0]) * (Rd[2]) + (quad->F) * (Rd[1]) * (Rd[2]);
+    double b = 2*(quad->A) * (Ro[0] - quad->pos[0]) * (Rd[0]) + 2*(quad->B) * (Ro[1] - quad->pos[1]) * (Rd[1]) + 2*(quad->C) * (Ro[2] - quad->pos[2]) * (Rd[2]) + (quad->D) * ((Ro[0] - quad->pos[0]) * (Rd[1]) + (Ro[1] - quad->pos[1]) * (Rd[0])) + (quad->E) * (Ro[0] - quad->pos[0]) * (Rd[2]) + (quad->F) * ((Ro[1] - quad->pos[1]) * (Rd[2]) + (Rd[1]) * (Ro[2] - quad->pos[2])) + (quad->G) * (Rd[0]) + (quad->H) * (Rd[1]) + (quad->I) * (Rd[2]);
+	double c = (quad->A) * sqr(Ro[0] - quad->pos[0]) + (quad->B) * sqr(Ro[1] - quad->pos[1]) + (quad->C) * sqr(Ro[2] - quad->pos[2]) + (quad->D) * (Ro[0] - quad->pos[0]) * (Ro[1] - quad->pos[1]) + (quad->E) * (Ro[0] - quad->pos[0]) * (Ro[2] - quad->pos[2]) + (quad->F) * (Ro[1] - quad->pos[1]) * (Ro[2] - quad->pos[2]) + (quad->G) * (Ro[0] - quad->pos[0]) + (quad->H) * (Ro[1] - quad->pos[1]) + (quad->I) * (Ro[2] - quad->pos[2]) + (quad->J);
+
+	double det = sqr(b) - 4 * a * c;
+	if (det < 0) return -1;
+	
+	// Tests which is the closest one and in front of camera.
+	double t = (-b - det)/(2 * a);
+	if (t > 0) return t;
+	t = (-b + det)/(2 * a);
+	if (t > 0) return t;
+
+	return -1;
+}
+
+static inline void get_intersection(double* intersection, double* Ro, double* Rd, double t){
+	intersection[0] = Ro[0] + Rd[0] * t;
+	intersection[1] = Ro[1] + Rd[1] * t;
+	intersection[2] = Ro[2] + Rd[2] * t;
+}
+
+void get_sphere_normal(double* normal, double* Ro, double* Rd, double t, Sphere* s){
+	double inter[3];
+	get_intersection(inter, Ro, Rd, t);
+	vector_subtract(normal, inter, s->pos);
+	normalize(normal);
+}
+
+void get_plane_normal(double* normal, double* Ro, double* Rd, double t, Plane* s){
+	memcpy(normal, s->normal, sizeof(double) * 3);
+}
+
+void get_quadric_normal(double* normal, double* Ro, double* Rd, double t, Quadric* s){
+	double inter[3];
+	get_intersection(inter, Rd, Rd, t);
+	normal[0] = 2 * s->A * inter[0] + s->D * inter[1] + s->E * inter[2] + s->G;
+	normal[1] = 2 * s->B * inter[1] + s->D * inter[0] + s->F * inter[2] + s->H;
+	normal[2] = 2 * s->C * inter[2] + s->E * inter[0] + s->F * inter[1] + s->I;	
+}
+
+void get_illumination(double* Ro, double* Rd, double t, Object* o){
+	
 }
 
 /*

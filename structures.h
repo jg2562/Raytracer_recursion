@@ -59,7 +59,7 @@ typedef struct {
 	double r_a1;
 	double r_a2;
 	double ang_a0;
-} Light
+} Light;
 
 // Basic scene file
 typedef struct {
