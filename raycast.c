@@ -155,10 +155,6 @@ Object* cast_ray(double* ray_len, Object** objects, Light** lights, double* Ro, 
 }
 
 void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** lights){
-	double inter[3] = {0,0,0};
-	double normal[3] = {0,0,0};
-	double* diff_color = malloc(3 * sizeof(double));
-	double* spec_color = malloc(3 * sizeof(double));
 	double t = 0;
 	Object* o = cast_ray(&t, objects, lights, Ro, Rd);
 	if (o == NULL){
@@ -168,6 +164,10 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		return;
 	}
 	
+	double inter[3] = {0,0,0};
+	double normal[3] = {0,0,0};
+	double* diff_color = malloc(3 * sizeof(double));
+	double* spec_color = malloc(3 * sizeof(double));
 	double AMB_COLOR[3] = {0.2, 0.2, 0.2};
 	
 	get_intersection(inter, Ro, Rd, t);
@@ -295,29 +295,32 @@ void free_scene(Scene* scene){
 		object = objects[i];
 		switch (object->id){
 		case 0:
-			;
 			free(object);
 			break;
 		case 1:
-			;
 			break;
 		case 2:
 			;
 			Sphere* s = (Sphere*) object;
-			free(s->color);
+			free(s->diff_color);
+			free(s->spec_color);
 			free(s->pos);
 			free(s);
 			break;
 		case 3:
 			;
 			Plane* p = (Plane*) object;
-			free(p->color);
+			free(p->diff_color);
+			free(p->spec_color);
 			free(p->pos);
 			free(p);
 			break;
 		case 4:
 			;
 			Quadric* q = (Quadric*) object;
+			free(q->pos);
+			free(diff_color);
+			free(spec_color);
 			free(q);
 			break;
 		default:
@@ -325,6 +328,17 @@ void free_scene(Scene* scene){
 			exit(1);
 		}
 	}
+	
+	Light** lights = scene->lights;
+	Light* light;
+	for (int i = 0; lights[i] != 0; i += 1){
+		light = lights[i];
+		free(light->color);
+		free(light->pos);
+		free(light->dir);
+		free(light);
+	}
+	free(lights);
 	free(objects);
 	free(scene->cam);
 	free(scene);
