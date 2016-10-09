@@ -8,6 +8,9 @@
 #include "parser.h"
 #include "3dmath.h"
 
+#define SPEC_HIGHLIGHT 5
+#define DIFF_FRAC 0.7
+#define SPEC_FRAC 1-DIFF_FRAC
 /*
   Finds sphere intersection point with given ray.
   Ro: Ray origin vector.
@@ -15,7 +18,9 @@
   C: Sphere center position vector.
   r: Sphere radius.
 */
-double sphere_intersection(double* Ro, double* Rd, double* C, double r){
+double sphere_intersection(double* Ro, double* Rd, Sphere* s){
+	double* C = s->pos;
+	double r = s->radius;
 	// Finds A,B, and C for the quadratic equation
 	double a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
 	double b =  2 * (Rd[0] * (Ro[0] - C[0]) + Rd[1] * (Ro[1] - C[1]) + Rd[2] * (Ro[2] - C[2]));
@@ -44,10 +49,11 @@ double sphere_intersection(double* Ro, double* Rd, double* C, double r){
   n: Plane normal vector.
 
 */
-double plane_intersection(double* Ro, double* Rd, double* p, double* n){
-	// a(xr - x0) + b(yr - y0,) + c(zr - z0) = 0
+double plane_intersection(double* Ro, double* Rd, Plane* p){
+	double* pos = p->pos;
+	double* n = p->normal;
 	// Split plane equation into top and bottom half for understandability
-	double top = (n[0] * Ro[0] - n[0] * p[0] + n[1] * Ro[1] - n[1] * p[1] + n[2] * Ro[2] - n[2] * p[2]);
+	double top = (n[0] * Ro[0] - n[0] * pos[0] + n[1] * Ro[1] - n[1] * pos[1] + n[2] * Ro[2] - n[2] * pos[2]);
 	double bottom = (n[0] * Rd[0] + n[1] * Rd[1] + n[2] * Rd[2]);
 	double t = -1 * top / bottom;
 
@@ -79,27 +85,84 @@ static inline void get_intersection(double* intersection, double* Ro, double* Rd
 	intersection[2] = Ro[2] + Rd[2] * t;
 }
 
-void get_sphere_normal(double* normal, double* Ro, double* Rd, double t, Sphere* s){
-	double inter[3];
-	get_intersection(inter, Ro, Rd, t);
+void get_sphere_normal(double* normal, double* inter, Sphere* s){
 	vector_subtract(normal, inter, s->pos);
 	normalize(normal);
 }
 
-void get_plane_normal(double* normal, double* Ro, double* Rd, double t, Plane* s){
+void get_plane_normal(double* normal, double* inter, Plane* s){
 	memcpy(normal, s->normal, sizeof(double) * 3);
 }
 
-void get_quadric_normal(double* normal, double* Ro, double* Rd, double t, Quadric* s){
-	double inter[3];
-	get_intersection(inter, Rd, Rd, t);
+void get_quadric_normal(double* normal, double* inter, Quadric* s){
 	normal[0] = 2 * s->A * inter[0] + s->D * inter[1] + s->E * inter[2] + s->G;
 	normal[1] = 2 * s->B * inter[1] + s->D * inter[0] + s->F * inter[2] + s->H;
 	normal[2] = 2 * s->C * inter[2] + s->E * inter[0] + s->F * inter[1] + s->I;	
 }
 
-void get_illumination(double* Ro, double* Rd, double t, Object* o){
+void get_color(double* color, double* Ro, double* Rd, double t, Object* o, Light** lights){
+	double inter[3] = {0,0,0};
+	double normal[3] = {0,0,0};
+	double* diff_color = malloc(3 * sizeof(double));
+	double* spec_color = malloc(3 * sizeof(double));
+
+	double AMB_COLOR[3] = {0.2, 0.2, 0.2};
 	
+	get_intersection(inter, Ro, Rd, t);
+	switch (o->id){
+	case 2:
+		;
+		Sphere* s = (Sphere*) o;
+		get_sphere_normal(normal, inter, s);
+		diff_color = s->diff_color;
+		spec_color = s->spec_color;
+		break;
+	case 3:
+		;
+		Plane* p = (Plane*) o;
+		get_plane_normal(normal, inter, (Plane*) o);
+		diff_color = p->diff_color;
+		spec_color = p->spec_color;
+		break;
+	case 4:
+		;
+		Quadric* q = (Quadric*) o;
+		get_quadric_normal(normal, inter, (Quadric*) o);
+		diff_color = q->diff_color;
+		spec_color = q->spec_color;
+		break;
+	default:
+		fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", o->id);
+		exit(1);
+	}
+	double* l_dir = malloc(3 * sizeof(double));
+	double* Id =  malloc(3 * sizeof(double));
+	double* Is =  malloc(3 * sizeof(double));
+	for (int i = 0; lights[i] != 0; i += 1){
+		Light* light = lights[i];
+		vector_subtract(l_dir, inter, light->pos);
+		normalize(l_dir);
+		double sub_Id[3] = {0, 0, 0};
+		vector_scale(sub_Id,light->color,vector_dot(l_dir, normal));
+		vector_multiply(sub_Id,sub_Id, diff_color);
+		vector_add(Id, Id, sub_Id);
+			 
+		double sub_Is[3] = {0, 0, 0};
+	    double r_l_dir[3] = {0, 0, 0};
+		vector_reflect(r_l_dir, l_dir, normal);
+		vector_scale(sub_Is,light->color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+	   	vector_add(Is, Is, sub_Is);				 
+	}
+	vector_scale(Id, Id, DIFF_FRAC);
+	vector_add(color, color, Id);
+	
+	vector_scale(Is, Is, SPEC_FRAC);
+	vector_add(color, color, Is);
+
+	vector_add(color, color, AMB_COLOR);
+
+	free(diff_color);
+	free(spec_color);
 }
 
 /*
@@ -109,8 +172,7 @@ void get_illumination(double* Ro, double* Rd, double t, Object* o){
   Ro: The origin vector of the ray.
   Rd: The direction vector of the ray.
  */
-Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
-
+Object* cast_ray(double* ray_len, Object** objects, Light** lights, double* Ro, double* Rd){
 	double best_t = INFINITY;
 	int best_i = -1;
 
@@ -123,16 +185,12 @@ Object* cast_ray(double* ray_len, Object** objects, double* Ro, double* Rd){
 		case 2 :
 			;
 			Sphere* s = (Sphere*) objects[i];
-			t = sphere_intersection(Ro, Rd,
-									s->pos,
-									s->radius);
+			t = sphere_intersection(Ro, Rd,	s);
 			break;
 		case 3 :
 			;
 			Plane* p = (Plane*) objects[i];
-			t = plane_intersection(Ro, Rd,
-								   p->pos,
-								   p->normal);
+			t = plane_intersection(Ro, Rd, p);
 			break;
 		case 4:
 			;
@@ -203,7 +261,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 			// Casts ray
 			double t;
-			Object* object = cast_ray(&t, objects, Ro, Rd);
+			Object* object = cast_ray(&t, objects,scene->lights, Ro, Rd);
 
 			// Gets object color for pixel
 			Pixel pix;
