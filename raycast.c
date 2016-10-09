@@ -100,12 +100,74 @@ void get_quadric_normal(double* normal, double* inter, Quadric* s){
 	normal[2] = 2 * s->C * inter[2] + s->E * inter[0] + s->F * inter[1] + s->I;	
 }
 
-void get_color(double* color, double* Ro, double* Rd, double t, Object* o, Light** lights){
+/*
+  Casts ray to find first interaction with object.
+  ray_len: The double address to return the length of the ray to.
+  objects: The objects in the scene.
+  Ro: The origin vector of the ray.
+  Rd: The direction vector of the ray.
+ */
+Object* cast_ray(double* ray_len, Object** objects, Light** lights, double* Ro, double* Rd){
+	double best_t = INFINITY;
+	int best_i = -1;
+
+	// Finds the closest object on the ray
+	for (int i=0; objects[i] != 0; i += 1) {
+		double t = 0;
+
+		// Determines what type of object intersection test needs to be performed
+		switch(objects[i]->id) {
+		case 2 :
+			;
+			Sphere* s = (Sphere*) objects[i];
+			t = sphere_intersection(Ro, Rd,	s);
+			break;
+		case 3 :
+			;
+			Plane* p = (Plane*) objects[i];
+			t = plane_intersection(Ro, Rd, p);
+			break;
+		case 4:
+			;
+			Quadric* q = (Quadric*) objects[i];
+			t = quadric_intersection(Ro, Rd, q);
+			break;
+		default:
+			fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", objects[i]->id);
+			exit(1);
+		}
+		// If distance is shorter, replace it
+		if (t > 0 && t < best_t){
+			best_t = t;
+			best_i = i;
+		}
+	}
+
+	// Returns the object with best intersection
+	if (best_i != -1) {
+		// Assigns ray length for returning
+		*ray_len = best_t;
+		return objects[best_i];
+	} else {
+		*ray_len = -1;
+		return NULL;
+	}
+}
+
+void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** lights){
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
 	double* diff_color = malloc(3 * sizeof(double));
 	double* spec_color = malloc(3 * sizeof(double));
-
+	double t = 0;
+	Object* o = cast_ray(&t, objects, lights, Ro, Rd);
+	if (o == NULL){
+		color[0] = 0;
+		color[1] = 0;
+		color[2] = 0;
+		return;
+	}
+	
 	double AMB_COLOR[3] = {0.2, 0.2, 0.2};
 	
 	get_intersection(inter, Ro, Rd, t);
@@ -166,60 +228,6 @@ void get_color(double* color, double* Ro, double* Rd, double t, Object* o, Light
 }
 
 /*
-  Casts ray to find first interaction with object.
-  ray_len: The double address to return the length of the ray to.
-  objects: The objects in the scene.
-  Ro: The origin vector of the ray.
-  Rd: The direction vector of the ray.
- */
-Object* cast_ray(double* ray_len, Object** objects, Light** lights, double* Ro, double* Rd){
-	double best_t = INFINITY;
-	int best_i = -1;
-
-	// Finds the closest object on the ray
-	for (int i=0; objects[i] != 0; i += 1) {
-		double t = 0;
-
-		// Determines what type of object intersection test needs to be performed
-		switch(objects[i]->id) {
-		case 2 :
-			;
-			Sphere* s = (Sphere*) objects[i];
-			t = sphere_intersection(Ro, Rd,	s);
-			break;
-		case 3 :
-			;
-			Plane* p = (Plane*) objects[i];
-			t = plane_intersection(Ro, Rd, p);
-			break;
-		case 4:
-			;
-			Quadric* q = (Quadric*) objects[i];
-			t = quadric_intersection(Ro, Rd, q);
-			break;
-		default:
-			fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", objects[i]->id);
-			exit(1);
-		}
-		// If distance is shorter, replace it
-		if (t > 0 && t < best_t){
-			best_t = t;
-			best_i = i;
-		}
-	}
-
-	// Returns the object with best intersection
-	if (best_i != -1) {
-		// Assigns ray length for returning
-		*ray_len = best_t;
-		return objects[best_i];
-	} else {
-		ray_len = NULL;
-		return NULL;
-	}
-}
-
-/*
   Paints the scene to an image using ray casting.
   scene: The scene to be painted.
   height: the height of the final image.
@@ -261,20 +269,15 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 			// Casts ray
 			double t;
-			Object* object = cast_ray(&t, objects,scene->lights, Ro, Rd);
+			double color[3] = {0,0,0};
+
+			get_color(color, Ro, Rd, objects, scene->lights);
 
 			// Gets object color for pixel
 			Pixel pix;
-			if (object != NULL){
-				double* color = ((Sphere*)object)->color;
-				pix.r = color[0] * 255;
-				pix.g = color[1] * 255;
-				pix.b = color[2] * 255;
-			} else {
-				pix.r = 0;
-				pix.g = 0;
-				pix.b = 0;
-			}
+			pix.r = color[0] * 255;
+			pix.g = color[1] * 255;
+			pix.b = color[2] * 255;
 			img->buffer[y * N + x] = pix;
 		}
 	}
