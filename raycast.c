@@ -9,7 +9,7 @@
 #include "3dmath.h"
 
 #define SPEC_HIGHLIGHT 5
-#define DIFF_FRAC 0.7
+#define DIFF_FRAC 1
 #define SPEC_FRAC 1-DIFF_FRAC
 /*
   Finds sphere intersection point with given ray.
