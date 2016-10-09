@@ -118,6 +118,7 @@ Scene* read_scene(char* filename)  {
 	Scene* scene = malloc(sizeof(Scene));
 	scene->cam = NULL;
 	Object** objects = malloc(sizeof(Object*) * 128);
+	Light** lights = malloc(sizeof(Light*) * 128);
 	FILE* json = fopen(filename, "r");
 
 	if (json == NULL) {
@@ -133,7 +134,8 @@ Scene* read_scene(char* filename)  {
 	skip_ws(json);
 
 	// Find the objects
-	int index = 0;
+	int o_index = 0;
+	int l_index = 0;
 	while (1) {
 		c = fgetc(json);
 		if (c == ']') {
@@ -161,7 +163,7 @@ Scene* read_scene(char* filename)  {
 			Object* o;
 			if (strcmp(value, "camera") == 0) {
 				if (scene->cam != NULL){
-					fprintf(stderr, "Error: Second cameras found, on line number %d.\n",line);
+					fprintf(stderr, "Error: Second camera found, on line number %d.\n",line);
 					exit(1);
 				}
 				o = malloc(sizeof(Camera));
@@ -170,18 +172,23 @@ Scene* read_scene(char* filename)  {
 			} else if (strcmp(value, "sphere") == 0) {
 				o = malloc(sizeof(Sphere));
 				o->id = 2;
-				objects[index] = o;
-				index += 1;
+				objects[o_index] = o;
+				o_index += 1;
 			} else if (strcmp(value, "plane") == 0) {
 				o = malloc(sizeof(Plane));
 				o->id = 3;
-				objects[index] = o;
-				index += 1;
+				objects[o_index] = o;
+				o_index += 1;
 			} else if (strcmp(value, "quadric") == 0){
 				o = malloc(sizeof(Quadric));
 				o->id = 4;
-				objects[index] = o;
-				index += 1;
+				objects[o_index] = o;
+				o_index += 1;
+			} else if (strcmp(value, "light") == 0){
+				o = malloc(sizeof(Light));
+				o->id = 5;
+				lights[l_index] =(Light*) o;
+				l_index += 1;
 			} else {
 				fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 				exit(1);
@@ -246,51 +253,105 @@ Scene* read_scene(char* filename)  {
 					} else if (strcmp(key, "color") == 0){
 						double* value = next_vector(json);
 						// Error checking for color
+						if (value[0] < 0 || value[1] < 0 || value[2] < 0){
+							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
+							exit(1);
+						}
+						// Decides proper struct type
+						if (o->id < 2 || o-> id > 5){
+							fprintf(stderr, "Error: Color applied to non-colorable object on line %d.\n", line);
+							exit(1);
+						}
+						((Light*) o)->color = value;
+					} else if (strcmp(key, "diffuse_color") == 0){
+						double* value = next_vector(json);
+						// Error checking for color
 						if (value[0] < 0 || value[0] > 1 || value[1] < 0||value[1] > 1 || value[2] < 0 || value[2] > 1){
 							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
 							exit(1);
 						}
 						// Decides proper struct type
-						switch (o->id){
-						case 2:
-							((Sphere*) o)->color = value;
-							break;
-						case 3:
-							((Plane*) o)->color = value;
-							break;
-						case 4:
-							((Quadric*) o)->color = value;
-							break;
-						default:
-							fprintf(stderr, "Error: Color applied to non-colorable object.\n");
+						if (o->id < 2 || o-> id > 4){
+							fprintf(stderr, "Error: Color applied to non-colorable object on line %d.\n", line);
 							exit(1);
 						}
+						((Sphere*) o)->diff_color = value;
+					} else if (strcmp(key, "specular_color") == 0){
+						double* value = next_vector(json);
+						// Error checking for color
+						if (value[0] < 0 || value[0] > 1 || value[1] < 0||value[1] > 1 || value[2] < 0 || value[2] > 1){
+							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
+							exit(1);
+						}
+						// Decides proper struct type
+						if (o->id < 2 || o-> id > 4){
+							fprintf(stderr, "Error: Color applied to non-colorable object on line %d.\n", line);
+							exit(1);
+						}
+						((Sphere*) o)->spec_color = value;
 					} else if (strcmp(key, "position") == 0){
 						double* value = next_vector(json);
-
-						// Decides proper struct type
-						switch (o->id){
-						case 2:
-							((Sphere*) o)->pos = value;
-							break;
-						case 3:
-							((Plane*) o)->pos = value;
-							break;
-						case 4:
-							((Quadric*) o)->pos = value;
-							break;
-						default:
-							fprintf(stderr, "Error: Color applied to non-colorable object.\n");
+						if (o->id < 2 || o-> id > 5){
+							fprintf(stderr, "Error: Position applied to non-positionable object on line %d.\n", line);
 							exit(1);
 						}
+						((Sphere*) o)->pos = value;
 					} else if (strcmp(key, "normal") == 0) {
 						double* value = next_vector(json);
 						if (o->id != 3){
-							fprintf(stderr, "Error: Normal vector given to non-plane object.\n");
+							fprintf(stderr, "Error: Normal vector given to non-plane object on line %d.\n", line);
 							exit(1);
 						}
 						normalize(value);
 						((Plane*) o)->normal = value;
+					} else if (strcmp(key, "direction") == 0){
+						double* value = next_vector(json);
+						if (o->id != 5){
+							fprintf(stderr, "Error: Direction vector given to non-light object on line %d.\n", line);
+							exit(1);
+						}
+						normalize(value);
+						((Light*) o)->dir = value;
+					} else if (strcmp(key, "radial-a0") == 0){
+						double value = next_number(json);
+						if (o->id != 5){
+							fprintf(stderr, "Error: Radial-a0 applied to non-light object on line %d.\n", line);
+							exit(1);
+						} else if (value <= 0){
+							fprintf(stderr, "Error: Radial-a0 non-positive number on line %d.\n", line);
+							exit(1);
+						}
+						((Light*) o)->r_a0 = value;
+					} else if (strcmp(key, "radial-a1") == 0){
+						double value = next_number(json);
+						if (o->id != 5){
+							fprintf(stderr, "Error: Radial-a1 applied to non-light object on line %d.\n", line);
+							exit(1);
+						} else if (value <= 0){
+							fprintf(stderr, "Error: Radial-a1 non-positive number on line %d.\n", line);
+							exit(1);
+						}
+						((Light*) o)->r_a1 = value;
+					} else if (strcmp(key, "radial-a2") == 0){
+						double value = next_number(json);
+						if (o->id != 5){
+							fprintf(stderr, "Error: Radial-a2 applied to non-light object on line %d.\n", line);
+							exit(1);
+						} else if (value <= 0){
+							fprintf(stderr, "Error: Radial-a2 non-positive number on line %d.\n", line);
+							exit(1);
+						}
+						((Light*) o)->r_a2 = value;
+					} else if (strcmp(key, "angular-a0") == 0){
+						double value = next_number(json);
+						if (o->id != 5){
+							fprintf(stderr, "Error: Angular-a0 applied to non-light object on line %d.\n", line);
+							exit(1);
+						} else if (value <= 0){
+							fprintf(stderr, "Error: Anglular-a0 non-positive number on line %d.\n", line);
+							exit(1);
+						}
+						((Light*) o)->ang_a0 = value;
 					} else if (key[1] == 0){
 						Quadric* q = (Quadric*) o;
 						double value = next_number(json);
@@ -363,8 +424,8 @@ Scene* read_scene(char* filename)  {
 			exit(1);
 		}
 	}
-	objects[index] = NULL;
-	objects = realloc(objects, sizeof(Object*) * (index + 1));
+	objects[o_index] = NULL;
+	objects = realloc(objects, sizeof(Object*) * (o_index + 1));
 	scene->objects = objects;
 	return scene;
 }

@@ -51,7 +51,7 @@ typedef struct {
 } Quadric;
 
 typedef struct {
-	int id;
+	int id;// ID: 5
 	double* color;
 	double* pos;
 	double* dir;
