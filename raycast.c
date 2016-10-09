@@ -164,10 +164,10 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		return;
 	}
 	
+	double* diff_color;
+	double* spec_color;
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
-	double* diff_color = malloc(3 * sizeof(double));
-	double* spec_color = malloc(3 * sizeof(double));
 	double AMB_COLOR[3] = {0.2, 0.2, 0.2};
 	
 	get_intersection(inter, Ro, Rd, t);
@@ -197,9 +197,9 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", o->id);
 		exit(1);
 	}
-	double* l_dir = malloc(3 * sizeof(double));
-	double* Id =  malloc(3 * sizeof(double));
-	double* Is =  malloc(3 * sizeof(double));
+	double l_dir[3] = {0,0,0};
+	double Id[3] = {0,0,0};
+	double Is[3] = {0,0,0};
 	for (int i = 0; lights[i] != 0; i += 1){
 		Light* light = lights[i];
 		vector_subtract(l_dir, inter, light->pos);
@@ -222,9 +222,6 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	vector_add(color, color, Is);
 
 	vector_add(color, color, AMB_COLOR);
-
-	free(diff_color);
-	free(spec_color);
 }
 
 /*
@@ -319,8 +316,8 @@ void free_scene(Scene* scene){
 			;
 			Quadric* q = (Quadric*) object;
 			free(q->pos);
-			free(diff_color);
-			free(spec_color);
+			free(q->diff_color);
+			free(q->spec_color);
 			free(q);
 			break;
 		default:

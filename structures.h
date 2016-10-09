@@ -49,8 +49,8 @@ typedef struct {
 
 typedef struct {
 	int id;// ID: 5
-	double* color;
 	double* pos;
+	double* color;
 	double* dir;
 	double r_a0;
 	double r_a1;

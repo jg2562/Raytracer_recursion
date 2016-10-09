@@ -421,6 +421,7 @@ Scene* read_scene(char* filename)  {
 	objects[o_index] = NULL;
 	objects = realloc(objects, sizeof(Object*) * (o_index + 1));
 	scene->objects = objects;
+	scene->lights = lights;
 	return scene;
 }
 
