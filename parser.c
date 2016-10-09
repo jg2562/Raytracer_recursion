@@ -245,7 +245,7 @@ Scene* read_scene(char* filename)  {
 						if (o->id != 2){
 							fprintf(stderr, "Error: Radius applied to non-sphere object.\n");
 							exit(1);
-						}else if(value <= 0){
+						} else if(value <= 0){
 							fprintf(stderr,"Error: Invalid radius on line %d.\n", line);
 							exit(1);
 						}
@@ -256,10 +256,8 @@ Scene* read_scene(char* filename)  {
 						if (value[0] < 0 || value[1] < 0 || value[2] < 0){
 							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
 							exit(1);
-						}
-						// Decides proper struct type
-						if (o->id < 2 || o-> id > 5){
-							fprintf(stderr, "Error: Color applied to non-colorable object on line %d.\n", line);
+						} else if (o->id != 5){
+							fprintf(stderr, "Error: Basic Color applied to non-light object on line %d.\n", line);
 							exit(1);
 						}
 						((Light*) o)->color = value;
@@ -269,10 +267,8 @@ Scene* read_scene(char* filename)  {
 						if (value[0] < 0 || value[0] > 1 || value[1] < 0||value[1] > 1 || value[2] < 0 || value[2] > 1){
 							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
 							exit(1);
-						}
-						// Decides proper struct type
-						if (o->id < 2 || o-> id > 4){
-							fprintf(stderr, "Error: Color applied to non-colorable object on line %d.\n", line);
+						} else if (o->id < 2 || o-> id > 4){
+							fprintf(stderr, "Error: Diffuse Color applied to non-colorable object on line %d.\n", line);
 							exit(1);
 						}
 						((Sphere*) o)->diff_color = value;
@@ -282,10 +278,8 @@ Scene* read_scene(char* filename)  {
 						if (value[0] < 0 || value[0] > 1 || value[1] < 0||value[1] > 1 || value[2] < 0 || value[2] > 1){
 							fprintf(stderr,"Error: Invalid color on line %d.\n", line);
 							exit(1);
-						}
-						// Decides proper struct type
-						if (o->id < 2 || o-> id > 4){
-							fprintf(stderr, "Error: Color applied to non-colorable object on line %d.\n", line);
+						} else if (o->id < 2 || o-> id > 4){
+							fprintf(stderr, "Error: Specular Color applied to non-colorable object on line %d.\n", line);
 							exit(1);
 						}
 						((Sphere*) o)->spec_color = value;

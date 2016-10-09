@@ -15,7 +15,6 @@ typedef struct {
 
 typedef struct {
 	int id;// ID: 2
-	double* color;
 	double* pos;
 	double* diff_color;
 	double* spec_color;
@@ -24,7 +23,6 @@ typedef struct {
 
 typedef struct {
 	int id;// ID: 3
-	double* color;
 	double* pos;
 	double* diff_color;
 	double* spec_color;
@@ -34,7 +32,6 @@ typedef struct {
 // In case I get bored and want to add quadrics
 typedef struct {
 	int id;// ID: 4
-	double* color;
 	double* pos;
 	double* diff_color;
 	double* spec_color;
