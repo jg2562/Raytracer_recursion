@@ -9,7 +9,7 @@
 #include "3dmath.h"
 
 #define SPEC_HIGHLIGHT 5
-#define DIFF_FRAC 1
+#define DIFF_FRAC 0.5
 #define SPEC_FRAC 1-DIFF_FRAC
 /*
   Finds sphere intersection point with given ray.
@@ -168,7 +168,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double* spec_color;
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
-	double AMB_COLOR[3] = {0.2, 0.2, 0.2};
+	double AMB_COLOR[3] = {0.1, 0.1, 0.1};
 	
 	get_intersection(inter, Ro, Rd, t);
 	switch (o->id){
@@ -182,14 +182,14 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	case 3:
 		;
 		Plane* p = (Plane*) o;
-		get_plane_normal(normal, inter, (Plane*) o);
+		get_plane_normal(normal, inter, p);
 		diff_color = p->diff_color;
 		spec_color = p->spec_color;
 		break;
 	case 4:
 		;
 		Quadric* q = (Quadric*) o;
-		get_quadric_normal(normal, inter, (Quadric*) o);
+		get_quadric_normal(normal, inter, q);
 		diff_color = q->diff_color;
 		spec_color = q->spec_color;
 		break;
@@ -204,24 +204,32 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		Light* light = lights[i];
 		vector_subtract(l_dir, inter, light->pos);
 		normalize(l_dir);
+		
 		double sub_Id[3] = {0, 0, 0};
-		vector_scale(sub_Id,light->color,vector_dot(l_dir, normal));
+		double dot = -vector_dot(l_dir, normal);
+		vector_scale(sub_Id,light->color, dot);
 		vector_multiply(sub_Id,sub_Id, diff_color);
+		floor_color(sub_Id);
 		vector_add(Id, Id, sub_Id);
+		
 			 
 		double sub_Is[3] = {0, 0, 0};
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
-		vector_scale(sub_Is,light->color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+		vector_scale(sub_Is,light->color,pow(-vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+		floor_color(sub_Is);
 	   	vector_add(Is, Is, sub_Is);				 
 	}
+	floor_color(Id);
 	vector_scale(Id, Id, DIFF_FRAC);
 	vector_add(color, color, Id);
-	
+
+	floor_color(Is);
 	vector_scale(Is, Is, SPEC_FRAC);
 	vector_add(color, color, Is);
 
 	vector_add(color, color, AMB_COLOR);
+	floor_color(color);
 }
 
 /*

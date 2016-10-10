@@ -78,4 +78,20 @@ static inline void normalize(double* v) {
 	v[2] /= len;
 }
 
+static inline double floor_color_part(double color){
+	if (color > 1){
+		return 1;
+	} else if (color < 0) {
+		return 0;
+	} else {
+		return color;
+	}
+}
+
+static inline void floor_color(double* color){
+	color[0] = floor_color_part(color[0]);
+	color[1] = floor_color_part(color[1]);
+	color[2] = floor_color_part(color[2]);
+}
+
 #endif
