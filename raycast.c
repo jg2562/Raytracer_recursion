@@ -97,7 +97,8 @@ void get_plane_normal(double* normal, double* inter, Plane* s){
 void get_quadric_normal(double* normal, double* inter, Quadric* s){
 	normal[0] = 2 * s->A * inter[0] + s->D * inter[1] + s->E * inter[2] + s->G;
 	normal[1] = 2 * s->B * inter[1] + s->D * inter[0] + s->F * inter[2] + s->H;
-	normal[2] = 2 * s->C * inter[2] + s->E * inter[0] + s->F * inter[1] + s->I;	
+	normal[2] = 2 * s->C * inter[2] + s->E * inter[0] + s->F * inter[1] + s->I;
+	normalize(normal);
 }
 
 /*
