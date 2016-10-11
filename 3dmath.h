@@ -36,3 +36,10 @@ static inline void vector_reflect(double* c, double* a, double* b){
 	vector_scale(c, b, 2 * vector_dot(a, b));
 	vector_subtract(c, a, c);
 }
+
+static inline double max(double a, double b){
+	if (b > a)
+		return b;
+	else
+		return a;
+}

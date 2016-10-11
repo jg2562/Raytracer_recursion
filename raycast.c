@@ -29,6 +29,7 @@ double sphere_intersection(double* Ro, double* Rd, Sphere* s){
 	// Find the determinte for the quadratic equation
 	double det = sqr(b) - 4 * a * c;
 	if (det < 0) return -1;
+
   
 	det = sqrt(det);
 
@@ -207,10 +208,10 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		normalize(l_dir);
 		
 		double sub_Id[3] = {0, 0, 0};
-		double dot = -vector_dot(l_dir, normal);
+		double dot = max(-vector_dot(l_dir, normal),0);
 		vector_scale(sub_Id,light->color, dot);
 		vector_multiply(sub_Id,sub_Id, diff_color);
-		floor_color(sub_Id);
+		// floor_color(sub_Id);
 		vector_add(Id, Id, sub_Id);
 		
 			 
@@ -218,19 +219,19 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
 		vector_scale(sub_Is,light->color,pow(-vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
-		floor_color(sub_Is);
+		// floor_color(sub_Is);
 	   	vector_add(Is, Is, sub_Is);				 
 	}
-	floor_color(Id);
+	// floor_color(Id);
 	vector_scale(Id, Id, DIFF_FRAC);
 	vector_add(color, color, Id);
 
-	floor_color(Is);
+	// floor_color(Is);
 	vector_scale(Is, Is, SPEC_FRAC);
 	vector_add(color, color, Is);
 
 	vector_add(color, color, AMB_COLOR);
-	floor_color(color);
+	// floor_color(color);
 }
 
 /*
@@ -281,9 +282,9 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 			// Gets object color for pixel
 			Pixel pix;
-			pix.r = color[0] * 255;
-			pix.g = color[1] * 255;
-			pix.b = color[2] * 255;
+			pix.r = (unsigned char) clamp_color(color[0]) * 255;
+			pix.g = (unsigned char) clamp_color(color[1]) * 255;
+			pix.b = (unsigned char) clamp_color(color[2]) * 255;
 			img->buffer[y * N + x] = pix;
 		}
 	}
