@@ -109,14 +109,15 @@ void get_quadric_normal(double* normal, double* inter, Quadric* s){
   Ro: The origin vector of the ray.
   Rd: The direction vector of the ray.
  */
-Object* cast_ray(double* ray_len, Object** objects, Light** lights, double* Ro, double* Rd){
+Object* cast_ray(double* ray_len, Object** objects, Light** lights, Object* self, double* Ro, double* Rd){
 	double best_t = INFINITY;
 	int best_i = -1;
 
 	// Finds the closest object on the ray
 	for (int i=0; objects[i] != 0; i += 1) {
 		double t = 0;
-
+		if (self == objects[i])
+			continue;
 		// Determines what type of object intersection test needs to be performed
 		switch(objects[i]->id) {
 		case 2 :
@@ -158,7 +159,7 @@ Object* cast_ray(double* ray_len, Object** objects, Light** lights, double* Ro, 
 
 void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** lights){
 	double t = 0;
-	Object* o = cast_ray(&t, objects, lights, Ro, Rd);
+	Object* o = cast_ray(&t, objects, lights, NULL, Ro, Rd);
 	if (o == NULL){
 		color[0] = 0;
 		color[1] = 0;
@@ -171,6 +172,9 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
 	double AMB_COLOR[3] = {0.1, 0.1, 0.1};
+	color[0] = AMB_COLOR[0]; 
+	color[1] = AMB_COLOR[1]; 
+	color[2] = AMB_COLOR[2]; 
 	
 	get_intersection(inter, Ro, Rd, t);
 	switch (o->id){
@@ -203,15 +207,19 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double Id[3] = {0,0,0};
 	double Is[3] = {0,0,0};
 	for (int i = 0; lights[i] != 0; i += 1){
+		double t;
 		Light* light = lights[i];
 		vector_subtract(l_dir, inter, light->pos);
+		double mag_l = mag(l_dir);
 		normalize(l_dir);
+		//cast_ray(&t, objects, lights, inter, l_dir);
+		//if (t < 0 || t > mag_l)
+		//	continue;
 		
 		double sub_Id[3] = {0, 0, 0};
 		double dot = max(-vector_dot(l_dir, normal),0);
 		vector_scale(sub_Id,light->color, dot);
 		vector_multiply(sub_Id,sub_Id, diff_color);
-		// floor_color(sub_Id);
 		vector_add(Id, Id, sub_Id);
 		
 			 
@@ -219,19 +227,13 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
 		vector_scale(sub_Is,light->color,pow(-vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
-		// floor_color(sub_Is);
 	   	vector_add(Is, Is, sub_Is);				 
 	}
-	// floor_color(Id);
 	vector_scale(Id, Id, DIFF_FRAC);
 	vector_add(color, color, Id);
 
-	// floor_color(Is);
 	vector_scale(Is, Is, SPEC_FRAC);
 	vector_add(color, color, Is);
-
-	vector_add(color, color, AMB_COLOR);
-	// floor_color(color);
 }
 
 /*
@@ -282,9 +284,9 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 			// Gets object color for pixel
 			Pixel pix;
-			pix.r = (unsigned char) clamp_color(color[0]) * 255;
-			pix.g = (unsigned char) clamp_color(color[1]) * 255;
-			pix.b = (unsigned char) clamp_color(color[2]) * 255;
+			pix.r = clamp_color(color[0]) * 255;
+			pix.g = clamp_color(color[1]) * 255;
+			pix.b = clamp_color(color[2]) * 255;
 			img->buffer[y * N + x] = pix;
 		}
 	}

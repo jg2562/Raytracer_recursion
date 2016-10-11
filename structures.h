@@ -65,27 +65,5 @@ typedef struct {
 	Light** lights;
 } Scene;
 
-// Square function
-static inline double sqr(double v) {
-	return v*v;
-}
-
-// Vector normalization
-static inline void normalize(double* v) {
-	double len = sqrt(sqr(v[0]) + sqr(v[1]) + sqr(v[2]));
-	v[0] /= len;
-	v[1] /= len;
-	v[2] /= len;
-}
-
-static inline double clamp_color(double color){
-	if (color > 1){
-		return 1;
-	} else if (color < 0) {
-		return 0;
-	} else {
-		return color;
-	}
-}
-
 #endif
+

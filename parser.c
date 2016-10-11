@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "structures.h"
+#include "3dmath.h"
 #include "parser.h"
 
 int line = 1;

@@ -1,3 +1,31 @@
+// Square function
+static inline double sqr(double v) {
+	return v*v;
+}
+
+static inline double mag(double* v){
+	return sqrt(sqr(v[0]) + sqr(v[1]) + sqr(v[2]));
+	
+}
+
+// Vector normalization
+static inline void normalize(double* v) {
+	double len = mag(v);
+	v[0] /= len;
+	v[1] /= len;
+	v[2] /= len;
+}
+
+static inline double clamp_color(double color){
+	if (color > 1){
+		return 1;
+	} else if (color < 0) {
+		return 0;
+	} else {
+		return color;
+	}
+}
+
 static inline void vector_add(double* c, double* a, double* b) {
   c[0] = a[0] + b[0];
   c[1] = a[1] + b[1];
