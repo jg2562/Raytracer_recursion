@@ -213,15 +213,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		double mag_l = mag(l_dir);
 		normalize(l_dir);
 
-		Object* test;
-		test = cast_ray(&new_t, objects, lights, o, inter, l_dir);
-		double test_i[3] = {0,0,0};
-		get_intersection(test_i, inter, l_dir, new_t);
-		vector_subtract(test_i, test_i, Ro);
 		if (new_t >= 0 && new_t < mag_l){
-			if (o->id == 2){
-				printf("Hit id: %d, at %lf %lf %lf\n", test->id, l_dir[0], l_dir[1], l_dir[2]);
-			}
 			continue;
 		}
 		
