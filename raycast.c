@@ -207,17 +207,26 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double Id[3] = {0,0,0};
 	double Is[3] = {0,0,0};
 	for (int i = 0; lights[i] != 0; i += 1){
-		double t;
+		double new_t;
 		Light* light = lights[i];
-		vector_subtract(l_dir, inter, light->pos);
+		vector_subtract(l_dir, light->pos, inter);
 		double mag_l = mag(l_dir);
 		normalize(l_dir);
-		//cast_ray(&t, objects, lights, inter, l_dir);
-		//if (t < 0 || t > mag_l)
-		//	continue;
+
+		Object* test;
+		test = cast_ray(&new_t, objects, lights, o, inter, l_dir);
+		double test_i[3] = {0,0,0};
+		get_intersection(test_i, inter, l_dir, new_t);
+		vector_subtract(test_i, test_i, Ro);
+		if (new_t >= 0 && new_t < mag_l){
+			if (o->id == 2){
+				printf("Hit id: %d, at %lf %lf %lf\n", test->id, l_dir[0], l_dir[1], l_dir[2]);
+			}
+			continue;
+		}
 		
 		double sub_Id[3] = {0, 0, 0};
-		double dot = max(-vector_dot(l_dir, normal),0);
+		double dot = max(vector_dot(normal,l_dir),0);
 		vector_scale(sub_Id,light->color, dot);
 		vector_multiply(sub_Id,sub_Id, diff_color);
 		vector_add(Id, Id, sub_Id);
@@ -226,7 +235,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		double sub_Is[3] = {0, 0, 0};
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
-		vector_scale(sub_Is,light->color,pow(-vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+		vector_scale(sub_Is,light->color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
 	   	vector_add(Is, Is, sub_Is);				 
 	}
 	vector_scale(Id, Id, DIFF_FRAC);
