@@ -213,6 +213,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		double mag_l = mag(l_dir);
 		normalize(l_dir);
 
+		cast_ray(&new_t, objects, lights, o, inter, l_dir);
 		if (new_t >= 0 && new_t < mag_l){
 			continue;
 		}
