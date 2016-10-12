@@ -271,7 +271,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 
 			// Gets ray direction
 			double Rd[3] = {
-				cx + (w/2) - pixwidth * (x + 0.5),
+				cx - (w/2) + pixwidth * (x + 0.5),
 				cy + (h/2) - pixheight * (y + 0.5),
 				1
 			};
