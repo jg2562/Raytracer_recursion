@@ -312,7 +312,7 @@ Scene* read_scene(char* filename)  {
 						if (o->id != 5){
 							fprintf(stderr, "Error: Radial-a0 applied to non-light object on line %d.\n", line);
 							exit(1);
-						} else if (value <= 0){
+						} else if (value < 0){
 							fprintf(stderr, "Error: Radial-a0 non-positive number on line %d.\n", line);
 							exit(1);
 						}
@@ -322,7 +322,7 @@ Scene* read_scene(char* filename)  {
 						if (o->id != 5){
 							fprintf(stderr, "Error: Radial-a1 applied to non-light object on line %d.\n", line);
 							exit(1);
-						} else if (value <= 0){
+						} else if (value < 0){
 							fprintf(stderr, "Error: Radial-a1 non-positive number on line %d.\n", line);
 							exit(1);
 						}
@@ -332,7 +332,7 @@ Scene* read_scene(char* filename)  {
 						if (o->id != 5){
 							fprintf(stderr, "Error: Radial-a2 applied to non-light object on line %d.\n", line);
 							exit(1);
-						} else if (value <= 0){
+						} else if (value < 0){
 							fprintf(stderr, "Error: Radial-a2 non-positive number on line %d.\n", line);
 							exit(1);
 						}

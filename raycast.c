@@ -11,6 +11,7 @@
 #define SPEC_HIGHLIGHT 5
 #define DIFF_FRAC 0.5
 #define SPEC_FRAC 1-DIFF_FRAC
+
 /*
   Finds sphere intersection point with given ray.
   Ro: Ray origin vector.
@@ -63,6 +64,12 @@ double plane_intersection(double* Ro, double* Rd, Plane* p){
 	return -1;
 }
 
+/*
+ * Finds the quadric intersection point.
+ * Ro: Ray origin vector.
+ * Rd: Ray direction vector.
+ * quad: The quadric to intersect.
+ */
 double quadric_intersection(double* Ro, double* Rd, Quadric* quad){
 	double a = (quad->A) * sqr(Rd[0]) + (quad->B) * sqr(Rd[1]) + (quad->C) * sqr(Rd[2]) + (quad->D) * (Rd[0]) * (Rd[1]) + (quad->E) * (Rd[0]) * (Rd[2]) + (quad->F) * (Rd[1]) * (Rd[2]);
     double b = 2*(quad->A) * (Ro[0] - quad->pos[0]) * (Rd[0]) + 2*(quad->B) * (Ro[1] - quad->pos[1]) * (Rd[1]) + 2*(quad->C) * (Ro[2] - quad->pos[2]) * (Rd[2]) + (quad->D) * ((Ro[0] - quad->pos[0]) * (Rd[1]) + (Ro[1] - quad->pos[1]) * (Rd[0])) + (quad->E) * (Ro[0] - quad->pos[0]) * (Rd[2]) + (quad->F) * ((Ro[1] - quad->pos[1]) * (Rd[2]) + (Rd[1]) * (Ro[2] - quad->pos[2])) + (quad->G) * (Rd[0]) + (quad->H) * (Rd[1]) + (quad->I) * (Rd[2]);
@@ -80,25 +87,50 @@ double quadric_intersection(double* Ro, double* Rd, Quadric* quad){
 	return -1;
 }
 
+/*
+ * Small helper function that creates a vector along the ray at distance t
+ * intersection: Output intersection
+ * Ro: Ray origin vector.
+ * Rd: Ray direction vector.
+ * t: The distance along the ray. 
+ */
 static inline void get_intersection(double* intersection, double* Ro, double* Rd, double t){
 	intersection[0] = Ro[0] + Rd[0] * t;
 	intersection[1] = Ro[1] + Rd[1] * t;
 	intersection[2] = Ro[2] + Rd[2] * t;
 }
 
+/*
+ * Returns the sphere normal at the intersect.
+ * normal: The output normal
+ * inter: The intersection on the sphere
+ * s: The sphere being intersected
+ */
 void get_sphere_normal(double* normal, double* inter, Sphere* s){
 	vector_subtract(normal, inter, s->pos);
 	normalize(normal);
 }
 
-void get_plane_normal(double* normal, double* inter, Plane* s){
-	memcpy(normal, s->normal, sizeof(double) * 3);
+/*
+ * Returns the plane normal at the intersect.
+ * normal: The output normal
+ * inter: The intersection on the plane 
+ * p: The plane being intersected
+ */
+void get_plane_normal(double* normal, double* inter, Plane* p){
+	memcpy(normal, p->normal, sizeof(double) * 3);
 }
 
-void get_quadric_normal(double* normal, double* inter, Quadric* s){
-	normal[0] = 2 * s->A * inter[0] + s->D * inter[1] + s->E * inter[2] + s->G;
-	normal[1] = 2 * s->B * inter[1] + s->D * inter[0] + s->F * inter[2] + s->H;
-	normal[2] = 2 * s->C * inter[2] + s->E * inter[0] + s->F * inter[1] + s->I;
+/*
+ * Returns the quadric normal at the intersect.
+ * normal: The output normal
+ * inter: The intersection on the quadric
+ * q: The quadric being intersected
+ */
+void get_quadric_normal(double* normal, double* inter, Quadric* q){
+	normal[0] = 2 * q->A * inter[0] + q->D * inter[1] + q->E * inter[2] + q->G;
+	normal[1] = 2 * q->B * inter[1] + q->D * inter[0] + q->F * inter[2] + q->H;
+	normal[2] = 2 * q->C * inter[2] + q->E * inter[0] + q->F * inter[1] + q->I;
 	normalize(normal);
 }
 
@@ -157,8 +189,18 @@ Object* cast_ray(double* ray_len, Object** objects, Light** lights, Object* self
 	}
 }
 
+/*
+ * Gets the color for the ray projected from Ro in the direction of Rd.
+ * color: The color to return.
+ * Ro: The ray origin.
+ * Rd: The ray direction.
+ * objects: The objects to check through.
+ * lights: The lights to check through.
+ */
 void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** lights){
 	double t = 0;
+
+	// Checks if hits object, otherwise sets to black
 	Object* o = cast_ray(&t, objects, lights, NULL, Ro, Rd);
 	if (o == NULL){
 		color[0] = 0;
@@ -171,15 +213,19 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double* spec_color;
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
+	// Global ambient color
 	double AMB_COLOR[3] = {0.1, 0.1, 0.1};
+	// Sets ambient color to object color
 	color[0] = AMB_COLOR[0]; 
 	color[1] = AMB_COLOR[1]; 
 	color[2] = AMB_COLOR[2]; 
-	
+
+	// Gets the intersection vector
 	get_intersection(inter, Ro, Rd, t);
 	switch (o->id){
 	case 2:
 		;
+		// Gets sphere parameters
 		Sphere* s = (Sphere*) o;
 		get_sphere_normal(normal, inter, s);
 		diff_color = s->diff_color;
@@ -187,6 +233,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		break;
 	case 3:
 		;
+		// Gets plane parameters
 		Plane* p = (Plane*) o;
 		get_plane_normal(normal, inter, p);
 		diff_color = p->diff_color;
@@ -194,46 +241,61 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		break;
 	case 4:
 		;
+		// Gets quadric parameters
 		Quadric* q = (Quadric*) o;
 		get_quadric_normal(normal, inter, q);
 		diff_color = q->diff_color;
 		spec_color = q->spec_color;
 		break;
 	default:
+		// Checks if invalid object was passed
 		fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", o->id);
 		exit(1);
 	}
+
+	// Goes through lights to find shading
 	double l_dir[3] = {0,0,0};
 	double Id[3] = {0,0,0};
 	double Is[3] = {0,0,0};
 	for (int i = 0; lights[i] != 0; i += 1){
 		double new_t;
 		Light* light = lights[i];
+		double l_color[3];
+
+		// Finds the vector between the intersection and the light
 		vector_subtract(l_dir, light->pos, inter);
 		double mag_l = mag(l_dir);
 		normalize(l_dir);
 
+		// Checks if point is in shadow from light
 		cast_ray(&new_t, objects, lights, o, inter, l_dir);
 		if (new_t >= 0 && new_t < mag_l){
 			continue;
 		}
+
+		// Finds the strength of the light and scales the lights color
+		double str_l = 1 / (sqr(mag_l) * light->r_a2 + mag_l * light->r_a1 + light->r_a0); 
+		vector_scale(l_color, light->color, str_l);
 		
+		// Sets up the diffuse color 
 		double sub_Id[3] = {0, 0, 0};
 		double dot = max(vector_dot(normal,l_dir),0);
-		vector_scale(sub_Id,light->color, dot);
+		vector_scale(sub_Id, l_color, dot);
 		vector_multiply(sub_Id,sub_Id, diff_color);
 		vector_add(Id, Id, sub_Id);
 		
-			 
+		// Sets up the specular color 
 		double sub_Is[3] = {0, 0, 0};
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
-		vector_scale(sub_Is,light->color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+		vector_scale(sub_Is, l_color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
 	   	vector_add(Is, Is, sub_Is);				 
 	}
+	// Adds the diffuse color
 	vector_scale(Id, Id, DIFF_FRAC);
 	vector_add(color, color, Id);
 
+	// Adds the specular color
 	vector_scale(Is, Is, SPEC_FRAC);
 	vector_add(color, color, Is);
 }
@@ -294,14 +356,24 @@ Image* paint_scene(Scene* scene, int height, int width) {
 	}
 	return img;
 }
+
+/*
+ * Frees a image struct
+ * img: The image struct to be freed
+ */
 void free_image(Image* img){
 	free(img->buffer);
 	free(img);
 }
 
+/*
+ * Frees a scene stuct
+ * scene: The scene struct to be freed
+ */
 void free_scene(Scene* scene){
 	Object** objects = scene->objects;
 	Object* object;
+	// Goes through the objects and frees their different parts
 	for (int i = 0; objects[i] != 0; i += 1){
 		object = objects[i];
 		switch (object->id){
@@ -339,7 +411,8 @@ void free_scene(Scene* scene){
 			exit(1);
 		}
 	}
-	
+
+	// Frees the lights in the scene and their parts
 	Light** lights = scene->lights;
 	Light* light;
 	for (int i = 0; lights[i] != 0; i += 1){
@@ -349,6 +422,8 @@ void free_scene(Scene* scene){
 		free(light->dir);
 		free(light);
 	}
+
+	// Frees the arrays and the camera and then the scene itself
 	free(lights);
 	free(objects);
 	free(scene->cam);
