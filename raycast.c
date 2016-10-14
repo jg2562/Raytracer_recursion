@@ -276,7 +276,13 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		// Finds the strength of the light and scales the lights color
 		double str_l = 1 / (sqr(mag_l) * light->r_a2 + mag_l * light->r_a1 + light->r_a0); 
 		vector_scale(l_color, light->color, str_l);
-		
+
+		if (light->dir != NULL){
+			double ang_dot = -vector_dot(l_dir, light->dir);
+			// printf("ang_dot: %lf\n", pow(ang_dot, light->ang_a0));
+			vector_scale(l_color, l_color, pow(ang_dot, light->ang_a0));
+		}
+
 		// Sets up the diffuse color 
 		double sub_Id[3] = {0, 0, 0};
 		double dot = max(vector_dot(normal,l_dir),0);
