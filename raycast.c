@@ -362,7 +362,6 @@ Image* paint_scene(Scene* scene, int height, int width) {
 			img->buffer[y * N + x] = pix;
 		}
 	}
-	test_func(scene);
 	return img;
 }
 
