@@ -18,3 +18,7 @@ rebuild: clean build
 
 retest: rebuild
 	./raycast 500 500 setup.json scene.ppm
+
+restest: rebuild
+	./raycast 5 5 setup.json scene.ppm
+
