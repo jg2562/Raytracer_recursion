@@ -128,9 +128,9 @@ void get_plane_normal(double* normal, double* inter, Plane* p){
  * q: The quadric being intersected
  */
 void get_quadric_normal(double* normal, double* inter, Quadric* q){
-	normal[0] = 2 * q->A * inter[0] + q->D * inter[1] + q->E * inter[2] + q->G;
-	normal[1] = 2 * q->B * inter[1] + q->D * inter[0] + q->F * inter[2] + q->H;
-	normal[2] = 2 * q->C * inter[2] + q->E * inter[0] + q->F * inter[1] + q->I;
+	normal[0] = 2 * q->A * (inter[0] - q->pos[0]) + q->D * (inter[1] - q->pos[1]) + q->E * (inter[2] - q->pos[2]) + q->G;
+	normal[1] = 2 * q->B * (inter[1] - q->pos[1]) + q->D * (inter[0] - q->pos[0]) + q->F * (inter[2] - q->pos[2]) + q->H;
+	normal[2] = 2 * q->C * (inter[2] - q->pos[2]) + q->E * (inter[0] - q->pos[0]) + q->F * (inter[1] - q->pos[1]) + q->I;
 	normalize(normal);
 }
 
