@@ -342,7 +342,7 @@ Scene* read_scene(char* filename)  {
 						if (o->id != 5){
 							fprintf(stderr, "Error: Angular-a0 applied to non-light object on line %d.\n", line);
 							exit(1);
-						} else if (value <= 0){
+						} else if (value < 0){
 							fprintf(stderr, "Error: Anglular-a0 non-positive number on line %d.\n", line);
 							exit(1);
 						}
