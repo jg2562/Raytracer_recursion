@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 build: 
-	gcc raycast.c ppmrw.c parser.c -o raycast -lm
+	gcc raycast.c ppmrw.c parser.c -o raycast -lm -std=c99 -pedantic -Wall -Wextra -Wwrite-strings -Werror
 
 clean:
 	rm -f raycast
@@ -21,4 +21,3 @@ retest: rebuild
 
 restest: rebuild
 	./raycast 5 5 setup.json scene.ppm
-
