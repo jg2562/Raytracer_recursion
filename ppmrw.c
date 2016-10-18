@@ -61,7 +61,7 @@ char read_char(FILE* fh){
 	buffer: buffer to store file data. 
 */
 void read_type_3(FILE* fh, Image* img){
-	unsigned int i;
+	int i;
 	for (i = 0; i < img->height * img->width; i += 1){
 		// Changes data from binary to Pixel structure format
 		Pixel pix;
@@ -88,7 +88,7 @@ void read_type_6(FILE* fh, Image *img){
 	}
 	
 	// Goes through buffer and extracts the data in chunks
-	unsigned int i;
+	int i;
 	for (i = 0; i < img->width * img->height; i +=1){
 		Pixel pix;
 		pix.r = sub_buffer[i * 3];
@@ -121,7 +121,7 @@ void read_file(FILE* fh, Image* img){
 	fgetc(fh);
 	
 	// Reads in metadata.
-	int i;
+	int i = 0;
 	img->width = read_value_from_header(fh, i);
 	img->height = read_value_from_header(fh, i);
 	img->max_value = read_value_from_header(fh, i);
@@ -165,7 +165,7 @@ void read_file(FILE* fh, Image* img){
 	img: Image structure storing image data
 */
 void write_type_3(FILE* fh, Image* img){
-	unsigned int i;
+	int i;
 	for (i = 0; i < img->height * img->width; i += 1){
 		// Changes data from Pixel structure format to binary
 		Pixel pix = img->buffer[i];

@@ -108,7 +108,7 @@ static inline void get_intersection(double* intersection, double* Ro, double* Rd
  * inter: The intersection on the sphere
  * s: The sphere being intersected
  */
-void get_sphere_normal(double* normal, double* inter, Sphere* s){
+void get_sphere_normal(double* normal, Sphere* s, double* inter){
 	vector_subtract(normal, inter, s->pos);
 	normalize(normal);
 }
@@ -119,7 +119,7 @@ void get_sphere_normal(double* normal, double* inter, Sphere* s){
  * inter: The intersection on the plane 
  * p: The plane being intersected
  */
-void get_plane_normal(double* normal, double* inter, Plane* p){
+void get_plane_normal(double* normal, Plane* p){
 	memcpy(normal, p->normal, sizeof(double) * 3);
 }
 
@@ -129,7 +129,7 @@ void get_plane_normal(double* normal, double* inter, Plane* p){
  * inter: The intersection on the quadric
  * q: The quadric being intersected
  */
-void get_quadric_normal(double* normal, double* inter, Quadric* q){
+void get_quadric_normal(double* normal, Quadric* q, double* inter){
 	normal[0] = 2 * q->A * (inter[0] - q->pos[0]) + q->D * (inter[1] - q->pos[1]) + q->E * (inter[2] - q->pos[2]) + q->G;
 	normal[1] = 2 * q->B * (inter[1] - q->pos[1]) + q->D * (inter[0] - q->pos[0]) + q->F * (inter[2] - q->pos[2]) + q->H;
 	normal[2] = 2 * q->C * (inter[2] - q->pos[2]) + q->E * (inter[0] - q->pos[0]) + q->F * (inter[1] - q->pos[1]) + q->I;
@@ -143,7 +143,7 @@ void get_quadric_normal(double* normal, double* inter, Quadric* q){
   Ro: The origin vector of the ray.
   Rd: The direction vector of the ray.
  */
-Object* cast_ray(double* ray_len, Object** objects, Light** lights, Object* self, double* Ro, double* Rd){
+Object* cast_ray(double* ray_len, Object** objects, Object* self, double* Ro, double* Rd){
 	double best_t = INFINITY;
 	int best_i = -1;
 
@@ -203,7 +203,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double t = 0;
 
 	// Checks if hits object, otherwise sets to black
-	Object* o = cast_ray(&t, objects, lights, NULL, Ro, Rd);
+	Object* o = cast_ray(&t, objects, NULL, Ro, Rd);
 	if (o == NULL){
 		color[0] = 0;
 		color[1] = 0;
@@ -229,7 +229,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		;
 		// Gets sphere parameters
 		Sphere* s = (Sphere*) o;
-		get_sphere_normal(normal, inter, s);
+		get_sphere_normal(normal, s, inter);
 		diff_color = s->diff_color;
 		spec_color = s->spec_color;
 		break;
@@ -237,7 +237,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		;
 		// Gets plane parameters
 		Plane* p = (Plane*) o;
-		get_plane_normal(normal, inter, p);
+		get_plane_normal(normal, p);
 		diff_color = p->diff_color;
 		spec_color = p->spec_color;
 		break;
@@ -245,7 +245,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		;
 		// Gets quadric parameters
 		Quadric* q = (Quadric*) o;
-		get_quadric_normal(normal, inter, q);
+		get_quadric_normal(normal, q, inter);
 		diff_color = q->diff_color;
 		spec_color = q->spec_color;
 		break;
@@ -270,7 +270,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		normalize(l_dir);
 
 		// Checks if point is in shadow from light
-		cast_ray(&new_t, objects, lights, o, inter, l_dir);
+		cast_ray(&new_t, objects, o, inter, l_dir);
 		if (new_t >= 0 && new_t < mag_l){
 			continue;
 		}
@@ -297,6 +297,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
 		vector_scale(sub_Is, l_color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+		vector_multiply(sub_Id,sub_Id, spec_color);
 	   	vector_add(Is, Is, sub_Is);				 
 	}
 	// Adds the diffuse color
@@ -349,7 +350,6 @@ Image* paint_scene(Scene* scene, int height, int width) {
 			normalize(Rd);
 
 			// Casts ray
-			double t;
 			double color[3] = {0,0,0};
 
 			get_color(color, Ro, Rd, objects, scene->lights);
