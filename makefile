@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 build: 
-	gcc raycast.c ppmrw.c parser.c -o raycast -lm -std=c99 -pedantic -Wall -Wextra -Wwrite-strings -Werror
+	gcc raycast.c ppmrw.c parser.c -o raycast -lm -std=gnu99 -pedantic -Wall -Wextra -Wwrite-strings -Werror
 
 clean:
 	rm -f raycast
