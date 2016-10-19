@@ -56,6 +56,7 @@ typedef struct {
 	double r_a1;
 	double r_a2;
 	double ang_a0;
+	double theta;
 } Light;
 
 // Basic scene file

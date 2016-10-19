@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include "structures.h"
 #include "3dmath.h"
 #include "parser.h"
@@ -122,8 +123,7 @@ Scene* read_scene(char* filename)  {
 	Light** lights = malloc(sizeof(Light*) * 128);
 	FILE* json = fopen(filename, "r");
 
-	if (json == NULL) {
-		fprintf(stderr, "Error: Could not open file \"%s\"\n", filename);
+	if (json == NULL) {fprintf(stderr, "Error: Could not open file \"%s\"\n", filename);
 		exit(1);
 	}
   
@@ -186,10 +186,14 @@ Scene* read_scene(char* filename)  {
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "light") == 0){
-				o = malloc(sizeof(Light));
-				o->id = 5;
-				lights[l_index] =(Light*) o;
+				Light* l = malloc(sizeof(Light));
+				l->id = 5;
+				l->ang_a0 = 0;
+				l->dir = NULL;
+				l->theta = 0;
+				lights[l_index] = l;
 				l_index += 1;
+				o = (Object*) l;
 			} else {
 				fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 				exit(1);
@@ -347,6 +351,18 @@ Scene* read_scene(char* filename)  {
 							exit(1);
 						}
 						((Light*) o)->ang_a0 = value;
+					} else if (strcmp(key, "theta") == 0){
+						double value = next_number(json);
+						if (o->id != 5){
+							fprintf(stderr, "Error: Theta applied to non-light object on line %d.\n", line);
+							exit(1);
+						} else if (value < 0){
+							fprintf(stderr, "Error: Theta non-positive number on line %d.\n", line);
+							exit(1);
+						}
+
+						((Light*) o)->theta = cos(value * M_PI / 180);
+						printf("Theta: %lf", ((Light*) o)->theta);
 					} else if (key[1] == 0){
 						Quadric* q = (Quadric*) o;
 						double value = next_number(json);

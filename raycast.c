@@ -140,6 +140,7 @@ void get_quadric_normal(double* normal, Quadric* q, double* inter){
   Casts ray to find first interaction with object.
   ray_len: The double address to return the length of the ray to.
   objects: The objects in the scene.
+  self: The object to exclude during the ray casting. Can be null.
   Ro: The origin vector of the ray.
   Rd: The direction vector of the ray.
  */
@@ -276,11 +277,22 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		}
 
 		// Finds the strength of the light and scales the lights color
-		double str_l = 1 / (sqr(mag_l) * light->r_a2 + mag_l * light->r_a1 + light->r_a0); 
-		vector_scale(l_color, light->color, str_l);
+		double f_rad = 1 / (sqr(mag_l) * light->r_a2 + mag_l * light->r_a1 + light->r_a0); 
+		vector_scale(l_color, light->color, f_rad);
 
-		if (light->dir != NULL){
-			double ang_dot = -vector_dot(l_dir, light->dir);
+
+		// 1 if not spot
+		// 0 if v_obj . V_light = cos alpha < cos theta
+		// (v_obj . V_light) ^ a0 otherwise
+		if (light->dir != NULL && light->theta != 0 && light->ang_a0 != 0){
+			double r_l_dir[3] = {0, 0, 0};
+			vector_scale(r_l_dir, l_dir, -1);
+			double ang_dot = vector_dot(r_l_dir, light->dir);
+			if (ang_dot < light->theta){
+				vector_scale(l_color, l_color, 0);
+
+			} 
+
 			// printf("ang_dot: %lf\n", pow(ang_dot, light->ang_a0));
 			vector_scale(l_color, l_color, pow(ang_dot, light->ang_a0));
 		}
