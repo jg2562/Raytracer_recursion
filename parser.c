@@ -238,7 +238,7 @@ Scene* read_scene(char* filename)  {
 				o_index += 1;
 			} else if (strcmp(value, "light") == 0){
 				o = make_light();
-				Light* l = (Light*) o; 
+				Light* l = (Light*) o;
 				lights[l_index] = l;
 				l_index += 1;
 			} else {
@@ -407,8 +407,7 @@ Scene* read_scene(char* filename)  {
 							fprintf(stderr, "Error: Theta non-positive number on line %d.\n", line);
 							exit(1);
 						}
-
-						((Light*) o)->theta = cos(value * M_PI / 180);
+						((Light*) o)->theta = sin(value * M_PI / 180);
 					} else if (key[1] == 0){
 						Quadric* q = (Quadric*) o;
 						double value = next_number(json);
