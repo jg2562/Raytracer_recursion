@@ -8,9 +8,9 @@
 #include "parser.h"
 #include "3dmath.h"
 
-#define SPEC_HIGHLIGHT 5
-#define DIFF_FRAC 0.5
-#define SPEC_FRAC 1-DIFF_FRAC
+#define SPEC_HIGHLIGHT 20
+#define DIFF_FRAC 1
+#define SPEC_FRAC 1
 
 /*
   Finds sphere intersection point with given ray.
@@ -308,7 +308,8 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		double sub_Is[3] = {0, 0, 0};
 	    double r_l_dir[3] = {0, 0, 0};
 		vector_reflect(r_l_dir, l_dir, normal);
-		vector_scale(sub_Is, l_color,pow(vector_dot(r_l_dir, Rd), SPEC_HIGHLIGHT));
+		dot = max(0, vector_dot(r_l_dir, Rd));
+		vector_scale(sub_Is, l_color,pow(dot, SPEC_HIGHLIGHT));
 		vector_multiply(sub_Id,sub_Id, spec_color);
 	   	vector_add(Is, Is, sub_Is);				 
 	}
