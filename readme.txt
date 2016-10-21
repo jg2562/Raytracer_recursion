@@ -1,5 +1,5 @@
 Ray Tracer
-Project 2 for Computer Graphics
+Project 3 for Computer Graphics
 By Jack Garrard
 
 This program creates a scene that is created from a json file. The graphics procedure it uses is called ray casting and it involves testing for the nearests objects color with rays.
@@ -13,5 +13,6 @@ input.json: the input json file to read the scene from
 output.ppm: the output file to write the image to. 
 
 
-I plan to add Quadric support for cooler shapes later. Along with that I want to make some parts of my code use more elegant solutions in order to solve different ideas.
-I really enjoyed this project and hope we add more to it later. 
+This now can use pretty nice shading rendering along with shadow casting. It also allows for quadric rendering, even though it wasn't a requirement
+
+Awesome project! Can't wait for recursion
