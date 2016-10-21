@@ -217,7 +217,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
 	// Global ambient color
-	double AMB_COLOR[3] = {0.1, 0.1, 0.1};
+	double AMB_COLOR[3] = {0, 0, 0};
 	// Sets ambient color to object color
 	color[0] = AMB_COLOR[0]; 
 	color[1] = AMB_COLOR[1]; 
@@ -280,23 +280,21 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		double f_rad = 1 / (sqr(mag_l) * light->r_a2 + mag_l * light->r_a1 + light->r_a0); 
 		vector_scale(l_color, light->color, f_rad);
 
-
-		// 1 if not spot
-		// 0 if v_obj . V_light = cos alpha < cos theta
-		// (v_obj . V_light) ^ a0 otherwise
+		// Calculates if the theres a spotlight
 		if (light->dir != NULL && light->theta != 0 && light->ang_a0 != 0){
 			double r_l_dir[3] = {0, 0, 0};
 			vector_scale(r_l_dir, l_dir, -1);
 			double ang_dot = vector_dot(r_l_dir, light->dir);
+			// Checks if point is out of spotlight
 			if (ang_dot < light->theta){
-				vector_scale(l_color, l_color, 0);
-
+				continue;
 			} 
 
 			// printf("ang_dot: %lf\n", pow(ang_dot, light->ang_a0));
 			vector_scale(l_color, l_color, pow(ang_dot, light->ang_a0));
 		}
 
+		
 		// Sets up the diffuse color 
 		double sub_Id[3] = {0, 0, 0};
 		double dot = max(vector_dot(normal,l_dir),0);
