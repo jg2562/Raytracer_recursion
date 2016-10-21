@@ -114,12 +114,64 @@ double* next_vector(FILE* json) {
 	return v;
 }
 
+void make_plane(Object* o){
+	Plane* p = malloc(sizeof(Plane));
+	p->id = 3;
+	p->pos = NULL;
+	p->diff_color = NULL;
+	p->spec_color = NULL;
+	p->normal = NULL;
+	o = (Object*) p;
+}
+
+void make_sphere(Object* o){
+	Sphere* s = malloc(sizeof(Sphere));
+	s->id = 2;
+	s->pos = NULL;
+	s->diff_color = NULL;
+	s->spec_color = NULL;
+	s->radius = -1;
+	o = (Object*) s;
+}
+
+void make_quadric(Object* o){
+	Quadric* q = malloc(sizeof(Quadric));
+	s->id = 4;
+	q->pos = NULL;
+	q->diff_color = NULL;
+	q->spec_color = NULL;
+	q->A = -INFINITY;
+	q->B = -INFINITY;
+	q->C = -INFINITY;
+	q->D = -INFINITY;
+	q->E = -INFINITY;
+	q->F = -INFINITY;
+	q->G = -INFINITY;
+	q->H = -INFINITY;
+	q->I = -INFINITY;
+	q->J = -INFINITY;
+	o = (Object*) q;
+}
+
+void make_light(Object* o){
+	Light* l = malloc(sizeof(Light));
+	l->pos = NULL;
+	l->color = NULL;
+	l->dir = NULL;
+	l->r_a0 = -1;
+	l->r_a1 = -1;
+	l->r_a2 = -1;
+	l->theta = 0;
+	l->ang_a0 = 0;
+	l->theta = 0;
+}
 
 Scene* read_scene(char* filename)  {
 	int c;
 	Scene* scene = malloc(sizeof(Scene));
 	scene->cam = NULL;
 	Object** objects = malloc(sizeof(Object*) * 128);
+
 	Light** lights = malloc(sizeof(Light*) * 128);
 	FILE* json = fopen(filename, "r");
 
@@ -171,29 +223,22 @@ Scene* read_scene(char* filename)  {
 				o->id = 1;
 				scene->cam = (Camera*) o;	
 			} else if (strcmp(value, "sphere") == 0) {
-				o = malloc(sizeof(Sphere));
-				o->id = 2;
+				make_sphere(o);
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "plane") == 0) {
-				o = malloc(sizeof(Plane));
-				o->id = 3;
+				make_plane(o);
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "quadric") == 0){
-				o = malloc(sizeof(Quadric));
-				o->id = 4;
+				make_quadric(o);
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "light") == 0){
-				Light* l = malloc(sizeof(Light));
-				l->id = 5;
-				l->ang_a0 = 0;
-				l->dir = NULL;
-				l->theta = 0;
+				make_light(o);
+				Light* l = (Light*) o; 
 				lights[l_index] = l;
 				l_index += 1;
-				o = (Object*) l;
 			} else {
 				fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 				exit(1);
