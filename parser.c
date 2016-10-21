@@ -114,29 +114,29 @@ double* next_vector(FILE* json) {
 	return v;
 }
 
-void make_plane(Object* o){
+Object* make_plane(){
 	Plane* p = malloc(sizeof(Plane));
 	p->id = 3;
 	p->pos = NULL;
 	p->diff_color = NULL;
 	p->spec_color = NULL;
 	p->normal = NULL;
-	o = (Object*) p;
+	return (Object*) p;
 }
 
-void make_sphere(Object* o){
+Object* make_sphere(){
 	Sphere* s = malloc(sizeof(Sphere));
 	s->id = 2;
 	s->pos = NULL;
 	s->diff_color = NULL;
 	s->spec_color = NULL;
 	s->radius = -1;
-	o = (Object*) s;
+	return (Object*) s;
 }
 
-void make_quadric(Object* o){
+Object* make_quadric(){
 	Quadric* q = malloc(sizeof(Quadric));
-	s->id = 4;
+	q->id = 4;
 	q->pos = NULL;
 	q->diff_color = NULL;
 	q->spec_color = NULL;
@@ -150,11 +150,12 @@ void make_quadric(Object* o){
 	q->H = -INFINITY;
 	q->I = -INFINITY;
 	q->J = -INFINITY;
-	o = (Object*) q;
+	return (Object*) q;
 }
 
-void make_light(Object* o){
+Object* make_light(){
 	Light* l = malloc(sizeof(Light));
+	l->id = 5;
 	l->pos = NULL;
 	l->color = NULL;
 	l->dir = NULL;
@@ -164,6 +165,7 @@ void make_light(Object* o){
 	l->theta = 0;
 	l->ang_a0 = 0;
 	l->theta = 0;
+	return (Object*) l;
 }
 
 Scene* read_scene(char* filename)  {
@@ -223,19 +225,19 @@ Scene* read_scene(char* filename)  {
 				o->id = 1;
 				scene->cam = (Camera*) o;	
 			} else if (strcmp(value, "sphere") == 0) {
-				make_sphere(o);
+				o = make_sphere();
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "plane") == 0) {
-				make_plane(o);
+				o = make_plane();
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "quadric") == 0){
-				make_quadric(o);
+				o = make_quadric();
 				objects[o_index] = o;
 				o_index += 1;
 			} else if (strcmp(value, "light") == 0){
-				make_light(o);
+				o = make_light();
 				Light* l = (Light*) o; 
 				lights[l_index] = l;
 				l_index += 1;
@@ -407,7 +409,6 @@ Scene* read_scene(char* filename)  {
 						}
 
 						((Light*) o)->theta = cos(value * M_PI / 180);
-						printf("Theta: %lf", ((Light*) o)->theta);
 					} else if (key[1] == 0){
 						Quadric* q = (Quadric*) o;
 						double value = next_number(json);
