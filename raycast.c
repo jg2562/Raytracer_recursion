@@ -141,6 +141,20 @@ void add_radial_attenuation(double* output_color, Light* light, double light_dis
 	vector_scale(output_color, light->color, f_rad);
 }
 
+int add_angular_attenuation(double* output_color, Light* light, double* light_dir, double* light_color){
+	double r_l_dir[3] = {0, 0, 0};
+	vector_scale(r_l_dir, light_dir, -1);
+	double ang_dot = vector_dot(r_l_dir, light->dir);
+	// Checks if point is out of spotlight
+	if (ang_dot < light->theta){
+		return 1;
+	} 
+
+	// printf("ang_dot: %lf\n", pow(ang_dot, light->ang_a0));
+	vector_scale(output_color, light_color, pow(ang_dot, light->ang_a0));
+	return 0;
+}
+
 void add_diffuse(double* output_color, double* obj_color, double* light_color, double* light_dir, double* normal){
 	double sub_color[3] = {0, 0, 0};
 	double dot = max(vector_dot(normal,light_dir),0);
@@ -303,16 +317,8 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 
 		// Calculates if the theres a spotlight
 		if (light->dir != NULL && light->theta != 0 && light->ang_a0 != 0){
-			double r_l_dir[3] = {0, 0, 0};
-			vector_scale(r_l_dir, l_dir, -1);
-			double ang_dot = vector_dot(r_l_dir, light->dir);
-			// Checks if point is out of spotlight
-			if (ang_dot < light->theta){
+			if (add_angular_attenuation(l_color, light, l_dir, l_color))
 				continue;
-			} 
-
-			// printf("ang_dot: %lf\n", pow(ang_dot, light->ang_a0));
-			vector_scale(l_color, l_color, pow(ang_dot, light->ang_a0));
 		}
 
 		
