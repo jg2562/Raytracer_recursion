@@ -136,6 +136,11 @@ void get_quadric_normal(double* normal, Quadric* q, double* inter){
 	normalize(normal);
 }
 
+void add_radial_attenuation(double* output_color, Light* light, double light_dist){
+	double f_rad = 1 / (sqr(light_dist) * light->r_a2 + light_dist * light->r_a1 + light->r_a0); 
+	vector_scale(output_color, light->color, f_rad);
+}
+
 void add_diffuse(double* output_color, double* obj_color, double* light_color, double* light_dir, double* normal){
 	double sub_color[3] = {0, 0, 0};
 	double dot = max(vector_dot(normal,light_dir),0);
@@ -294,8 +299,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		}
 
 		// Finds the strength of the light and scales the lights color
-		double f_rad = 1 / (sqr(mag_l) * light->r_a2 + mag_l * light->r_a1 + light->r_a0); 
-		vector_scale(l_color, light->color, f_rad);
+		add_radial_attenuation(l_color, light, mag_l);
 
 		// Calculates if the theres a spotlight
 		if (light->dir != NULL && light->theta != 0 && light->ang_a0 != 0){
