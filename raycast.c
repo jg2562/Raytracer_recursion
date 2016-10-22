@@ -136,6 +136,23 @@ void get_quadric_normal(double* normal, Quadric* q, double* inter){
 	normalize(normal);
 }
 
+void add_diffuse(double* output_color, double* obj_color, double* light_color, double* light_dir, double* normal){
+	double sub_color[3] = {0, 0, 0};
+	double dot = max(vector_dot(normal,light_dir),0);
+	vector_scale(sub_color, light_color, dot);
+	vector_multiply(sub_color,sub_color, obj_color);
+	vector_add(output_color, output_color, sub_color);
+}
+
+void add_specular(double* output_color, double* obj_color, double* light_color, double* light_dir, double* normal, double* ray_dir){
+	double sub_color[3] = {0, 0, 0};
+	double reflected_light_dir[3] = {0, 0, 0};
+	vector_reflect(reflected_light_dir, light_dir, normal);
+	double dot = max(0, vector_dot(reflected_light_dir, ray_dir));
+	vector_scale(sub_color, light_color,pow(dot, SPEC_HIGHLIGHT));
+	vector_multiply(sub_color, sub_color, obj_color);
+	vector_add(output_color, output_color, sub_color);				 
+}
 /*
   Casts ray to find first interaction with object.
   ray_len: The double address to return the length of the ray to.
@@ -295,21 +312,11 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		}
 
 		
-		// Sets up the diffuse color 
-		double sub_Id[3] = {0, 0, 0};
-		double dot = max(vector_dot(normal,l_dir),0);
-		vector_scale(sub_Id, l_color, dot);
-		vector_multiply(sub_Id,sub_Id, diff_color);
-		vector_add(Id, Id, sub_Id);
+		// Sets up the diffuse color
+		add_diffuse(Id, diff_color, l_color, l_dir, normal); 
 		
 		// Sets up the specular color 
-		double sub_Is[3] = {0, 0, 0};
-	    double r_l_dir[3] = {0, 0, 0};
-		vector_reflect(r_l_dir, l_dir, normal);
-		dot = max(0, vector_dot(r_l_dir, Rd));
-		vector_scale(sub_Is, l_color,pow(dot, SPEC_HIGHLIGHT));
-		vector_multiply(sub_Id,sub_Id, spec_color);
-	   	vector_add(Is, Is, sub_Is);				 
+		add_specular(Id, spec_color, l_color, l_dir, normal, Rd); 
 	}
 	// Adds the diffuse color
 	vector_scale(Id, Id, DIFF_FRAC);
