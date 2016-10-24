@@ -66,5 +66,32 @@ typedef struct {
 	Light** lights;
 } Scene;
 
+/////////////META OBJECTS/////////////
+
+typedef struct Metafield Metafield;
+typedef struct Metaobject Metaobject;
+
+
+enum field_id{NONE, STRING, VECTOR, SCALAR};
+
+struct Metafield{
+	enum field_id id;
+	char* field_name;
+	int line_num;
+	union{
+		double scalar;
+		double* vector;
+		char* string;
+	};
+	Metafield* next;
+};
+
+
+struct Metaobject{
+	Metaobject* next;
+	Metafield* fields;
+
+};
+
 #endif
 
