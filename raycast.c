@@ -172,6 +172,7 @@ void add_specular(double* output_color, double* obj_color, double* light_color, 
 	vector_multiply(sub_color, sub_color, obj_color);
 	vector_add(output_color, output_color, sub_color);				 
 }
+
 /*
   Casts ray to find first interaction with object.
   ray_len: The double address to return the length of the ray to.
