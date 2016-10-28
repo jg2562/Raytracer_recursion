@@ -6,6 +6,13 @@ typedef struct {
 	int id; // ID: 0
 } Object;
 
+typedef struct {
+	int id; // ID: 0
+	double* pos;
+	double* diff_color;
+	double* spec_color;
+} DrawableObject;
+
 // Different object structure
 typedef struct {
 	int id; // ID: 1
@@ -88,6 +95,8 @@ struct Metafield{
 
 
 struct Metaobject{
+	int begin_line;
+	char* type;
 	Metaobject* next;
 	Metafield* fields;
 

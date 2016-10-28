@@ -8,13 +8,23 @@
 #include "parser.h"
 
 static int line = 1;
-
-
-
+// Error reporting really broken...
 void report_error(char* msg){
-	printf("Error: %s on line number %d.\n", msg, line);
+	printf("Error function not fixed")
+	printf("Error: %s.\n", msg);
 	exit(1);
 }
+
+void report_error_on_line(msg, line_num){
+	printf("Error function not fixed")
+	report_error("%s on line number %d");
+}
+
+void report_parsing_error(char* msg){
+	printf("Error function not fixed")
+	report_error_on_line(msg, line)
+}
+
 
 // next_c() wraps the getc() function and provides error checking and line
 // number maintenance
