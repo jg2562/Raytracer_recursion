@@ -89,7 +89,7 @@ struct Metafield{
 		double scalar;
 		double* vector;
 		char* string;
-	};
+	} val;
 	Metafield* next;
 };
 
@@ -103,4 +103,3 @@ struct Metaobject{
 };
 
 #endif
-

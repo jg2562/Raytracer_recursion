@@ -6,6 +6,7 @@
 #include "structures.h"
 #include "ppmrw.h"
 #include "parser.h"
+#include "translator.h"
 #include "3dmath.h"
 
 #define SPEC_HIGHLIGHT 20
@@ -490,9 +491,11 @@ int main(int argc, char* argv[]){
 		fprintf(stderr, "Error: Output file write access.\n");
 		exit(1);
 	}
+
+	Metaobject* meta_objects = read_scene(argv[3]);
 	
 	// Reads in scene file
-	Scene* scene = read_scene(argv[3]);
+	Scene* scene = translate_scene(meta_objects);
 
 	// Checks if scene has camera
 	if (scene->cam == NULL){

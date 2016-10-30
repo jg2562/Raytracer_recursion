@@ -1,3 +1,6 @@
+
+#ifndef VECTOR_MATH_HEADER_INCLUDED
+#define VECTOR_MATH_HEADER_INCLUDED
 // Square function
 static inline double sqr(double v) {
 	return v*v;
@@ -71,3 +74,5 @@ static inline double max(double a, double b){
 	else
 		return a;
 }
+
+#endif

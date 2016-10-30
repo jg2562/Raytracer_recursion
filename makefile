@@ -3,7 +3,7 @@ all: build
 
 
 build: 
-	gcc raycast.c ppmrw.c parser.c -o raycast -lm -std=gnu99 -pedantic -Wall -Wextra -Wwrite-strings 
+	gcc raycast.c ppmrw.c parser.c translator.c -o raycast -lm -std=gnu99 -pedantic -Wall -Wextra -Wwrite-strings 
 
 clean:
 	rm -f raycast

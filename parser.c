@@ -6,25 +6,13 @@
 #include "structures.h"
 #include "3dmath.h"
 #include "parser.h"
+#include "utils.h"
 
 static int line = 1;
-// Error reporting really broken...
-void report_error(char* msg){
-	printf("Error function not fixed")
-	printf("Error: %s.\n", msg);
-	exit(1);
-}
 
-void report_error_on_line(msg, line_num){
-	printf("Error function not fixed")
-	report_error("%s on line number %d");
+static void report_parsing_error(const char* msg){
+	report_error_on_line(msg, line);
 }
-
-void report_parsing_error(char* msg){
-	printf("Error function not fixed")
-	report_error_on_line(msg, line)
-}
-
 
 // next_c() wraps the getc() function and provides error checking and line
 // number maintenance
@@ -53,6 +41,7 @@ static void unget_c(char c, FILE* json){
 	
 }
 
+/*
 static void peek_c(FILE* json){
 	int c = get_c(json);
 	
@@ -62,6 +51,7 @@ static void peek_c(FILE* json){
 	
 	unget_c(c, json);
 }
+*/
 
 // expect_c() checks that the next character is d.  If it is not it emits
 // an error.
@@ -74,11 +64,11 @@ static int expect_c(FILE* json, char c) {
 }
 
 
-static void require_c(FILE* json, char c, char* error_msg){
+static void require_c(FILE* json, char c, const char* error_msg){
 	if (expect_c(json, c))
 		return;
 	else
-		report_error(error_msg);
+		report_parsing_error(error_msg);
 }
 
 // skip_ws() skips white space in the file.
@@ -106,11 +96,11 @@ char* next_string(FILE* json) {
 	int i = 0;
 	while (c != '"') {
 		if (i >= 128) {
-			report_error("Strings longer than 128 characters in length are not supported");
+			report_parsing_error("Strings longer than 128 characters in length are not supported");
 		} else if (c == '\\') {
-			report_error("Strings with escape codes are not supported");
+			report_parsing_error("Strings with escape codes are not supported");
 		} else if (c < 32 || c > 126) {
-			report_error("Strings may contain only ascii characters");
+			report_parsing_error("Strings may contain only ascii characters");
 		}
 		buffer[i] = c;
 		i += 1;
@@ -124,9 +114,9 @@ double next_number(FILE* json) {
 	double value;
 	char c = fscanf(json, "%lf", &value);
 	if (c == EOF){
-		report_error("Unexpected error while parsing double");
+		report_parsing_error("Unexpected error while parsing double");
 	}else if (c != 1){
-		report_error("Invalid Number");
+		report_parsing_error("Invalid Number");
 	}
 	return value;
 }
@@ -151,17 +141,17 @@ double* next_vector(FILE* json) {
 
 void field_to_string(Metafield* field, char* string){
 	field->id = STRING;
-	field->string = string;
+	field->val.string = string;
 }
 
 void field_to_vector(Metafield* field, double* vector){
 	field->id = VECTOR;
-	field->vector = vector;
+	field->val.vector = vector;
 }
 
 void field_to_scalar(Metafield* field, double scalar){
 	field->id = SCALAR;
-	field->scalar = scalar;
+	field->val.scalar = scalar;
 }
 
 void read_key(Metafield* field, FILE* json){
@@ -172,13 +162,13 @@ void read_key(Metafield* field, FILE* json){
 void read_value(Metafield* field, FILE* json){
 	if (expect_c(json, '"')){
 		field->id = STRING;
-		field->string = next_string(json);
+		field->val.string = next_string(json);
 	} else if (expect_c(json, '[')){
 		field->id = VECTOR;
-		field->vector = next_vector(json);
+		field->val.vector = next_vector(json);
 	} else {
 		field->id = SCALAR;
-		field->scalar = next_number(json);
+		field->val.scalar = next_number(json);
 	}
 }
 
@@ -194,32 +184,58 @@ void read_field(Metafield* field, FILE* json){
 		get_c(json);
 }
 
-void read_object(Metaobject* obj, FILE* json){
+Metaobject* read_object(Metaobject* prev, FILE* json){
 	skip_ws(json);
 	if (!expect_c(json, '{')){
-		obj = NULL;
-		return;
+		return NULL;
 	}
+	
+	Metaobject* obj = malloc(sizeof(Metaobject));
 	skip_ws(json);
+
+	obj->begin_line = line;
+	prev->next = obj;
+	obj->next = NULL;
+	
 	Metafield* field;
+	Metafield* n_field;
 	while(!expect_c(json, '}')){
-		field = new_field();
+			
+		n_field = new_field();
+		if (field == NULL)
+			obj->fields = n_field;
+		else
+			field->next = n_field;
+		
+		field = n_field;
+
 		read_field(field, json);
 		skip_ws(json);
 	}
+	
+	field->next = NULL;
+	
 	if (expect_c(json, ','))
 		get_c(json);
+	
+	return obj;
 }
 
 Metaobject* read_scene(char* filename)  {
 	FILE* json = fopen(filename, "r");
 	skip_ws(json);
 	require_c(json, '[', "Expected '[' to begin file");
+	Metaobject* first = NULL;
 	Metaobject* obj = NULL;
 	do{
+		if (first == NULL)
+			first = obj;
+		else
+			
 		skip_ws(json);
-		read_object(obj, json);
+		obj = read_object(obj, json);
 	} while(1);
 	skip_ws(json);
 	require_c(json, ']', "Expected ']' to end file");
+	return first;
 }
