@@ -189,7 +189,8 @@ Metaobject* read_object(Metaobject* prev, FILE* json){
 	if (!expect_c(json, '{')){
 		return NULL;
 	}
-	
+
+	printf("Object Read\n");
 	Metaobject* obj = malloc(sizeof(Metaobject));
 	skip_ws(json);
 
@@ -228,13 +229,13 @@ Metaobject* read_scene(char* filename)  {
 	Metaobject* first = NULL;
 	Metaobject* obj = NULL;
 	do{
+		printf("Begin reading\n");
 		if (first == NULL)
 			first = obj;
-		else
 			
 		skip_ws(json);
 		obj = read_object(obj, json);
-	} while(1);
+	} while(obj != NULL);
 	skip_ws(json);
 	require_c(json, ']', "Expected ']' to end file");
 	return first;
