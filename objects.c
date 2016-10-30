@@ -1,5 +1,8 @@
-#include "structures.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "objects.h"
+#include "structures.h"
 
 Object* make_plane(){
 	Plane* p = malloc(sizeof(Plane));
@@ -53,4 +56,25 @@ Object* make_light(){
 	l->ang_a0 = 0;
 	l->theta = 0;
 	return (Object*) l;
+}
+
+Scene* make_scene(){
+	Scene* s = malloc(sizeof(Scene));
+	memset(s, 0, sizeof(*s));
+	return s;
+}
+
+
+Metaobject* make_metaobject(){
+	Metaobject* mobj = malloc(sizeof(Metaobject));
+	memset(mobj, 0, sizeof(*mobj));
+	mobj->begin_line = -1;
+	return mobj;
+}
+
+Metafield* make_metafield(){
+	
+	Metafield* mf = malloc(sizeof(Metafield));
+	mf->line_num = -1;
+	return mf;
 }

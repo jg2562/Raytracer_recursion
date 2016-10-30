@@ -475,8 +475,6 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
-	printf("Mark1\n");
-	
 	// Checks if supplied arguments are valid
 	int width, height;
 	if (width = atoi(argv[1]), width <= 0){
@@ -494,10 +492,8 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
-	printf("Mark2\n");
 	Metaobject* meta_objects = read_scene(argv[3]);
 	
-	printf("Mark3\n");
 	// Reads in scene file
 	Scene* scene = translate_scene(meta_objects);
 
@@ -507,7 +503,6 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 
-	printf("Mark4\n");
 	// Paints scene into image file using raycasting
 	Image* img = paint_scene(scene, height, width);
 
@@ -521,7 +516,6 @@ int main(int argc, char* argv[]){
 		exit(1);
 	}
 	
-	printf("Mark5\n");
 	// Write image to file
 	write_file(out, img, 6);
 	free_image(img);

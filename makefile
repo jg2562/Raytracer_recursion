@@ -3,7 +3,7 @@ all: build
 
 
 build: 
-	gcc raycast.c ppmrw.c parser.c translator.c -o raycast -lm -std=gnu99 -pedantic -Wall -Wextra -Wwrite-strings 
+	gcc raycast.c ppmrw.c parser.c translator.c objects.c -o raycast -lm -std=gnu99 -pedantic -Wall -Wextra -Wwrite-strings 
 
 clean:
 	rm -f raycast
@@ -23,3 +23,8 @@ retest: rebuild
 
 restest: rebuild
 	./raycast 5 5 setup.json scene.ppm
+
+debug: clean
+	gcc *.c -lm -g -o raycast
+	gdb ./raycast
+	run 500 500 setup.json scene.ppm

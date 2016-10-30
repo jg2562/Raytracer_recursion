@@ -5,6 +5,7 @@
 #include "structures.h"
 #include "3dmath.h"
 #include "translator.h"
+#include "objects.h"
 
 
 Metafield* get_field_by_name(Metaobject* obj, const char* name){
@@ -210,12 +211,13 @@ Object* get_object(Metaobject* m_obj){
 	return obj;
 }
 
-// void free_metafield(Metafield* m_field);
 void free_metafield(Metafield* m_field){
 	if (m_field == NULL)
 		return;
 	free_metafield(m_field->next);
+		
 	free(m_field->field_name);
+
 	if (m_field->id == STRING)
 		free(m_field->val.string);
 	else if (m_field->id == VECTOR)
@@ -223,7 +225,6 @@ void free_metafield(Metafield* m_field){
 	free(m_field);
 }
 
-// void free_metaobject(Metaobject* m_obj);
 void free_metaobject(Metaobject* m_obj){
 	if (m_obj == NULL)
 		return;
@@ -235,25 +236,26 @@ void free_metaobject(Metaobject* m_obj){
 
 Scene* translate_scene(Metaobject* m_obj) {
 	Metaobject* pointer = m_obj;
-	Scene* scene = malloc(sizeof(Scene));
+	Scene* scene = make_scene();
 	Object** objects = malloc(sizeof(Object*) * 128);
 	Light** lights = malloc(sizeof(Light*) * 128);
-	Object* obj;
+	Object* obj = NULL;
 
 	int obj_index = 0;
 	int light_index = 0;
 	while (pointer != NULL){
 		obj = get_object(pointer);
-		if (obj->id == 1)
+		if (obj->id == 1){
+			if (scene->cam != NULL)
+				report_error_on_line("Second camera found", pointer->begin_line);
 			scene->cam = (Camera*) obj;
-		else if (obj->id == 5)
+		}else if (obj->id == 5)
 			lights[light_index++] = (Light*) obj;
 		else
 			objects[obj_index++] = obj;
 	    
 		pointer = pointer->next;
 	}
-
 	free_metaobject(m_obj);
 
 	objects[obj_index] = NULL;

@@ -7,6 +7,8 @@
 #include "3dmath.h"
 #include "parser.h"
 #include "utils.h"
+#include "objects.h"
+
 
 static int line = 1;
 
@@ -26,10 +28,8 @@ static int get_c(FILE* json) {
 	}
 	// Try to prevert this error message
 	if (c == EOF) {
-		fprintf(stderr, "Error: Unexpected end of file on line number %d.\n", line);
-		exit(1);
+		report_parsing_error("Unexpected end of file");
 	}
-	
 	return c;
 }
 
@@ -43,6 +43,7 @@ static void unget_c(char c, FILE* json){
 
 /*
 static void peek_c(FILE* json){
+	printf("peeking ");
 	int c = get_c(json);
 	
 	#ifdef DEBUG2
@@ -52,6 +53,25 @@ static void peek_c(FILE* json){
 	unget_c(c, json);
 }
 */
+
+static char check_c(FILE* json, char c){
+	char d = get_c(json);
+	unget_c(d, json);
+	if (c == d) return 1;
+	else return 0;
+}
+
+static char pull_c(FILE* json, char c){
+	char d = get_c(json);
+	if (c == d) return 1;
+	else{
+#ifdef DEBUG3
+		printf("%c != %c, replacing\n", c, d);
+#endif
+		unget_c(d, json);
+		return 0;
+	}
+}
 
 // expect_c() checks that the next character is d.  If it is not it emits
 // an error.
@@ -65,14 +85,12 @@ static int expect_c(FILE* json, char c) {
 
 
 static void require_c(FILE* json, char c, const char* error_msg){
-	if (expect_c(json, c))
-		return;
-	else
+	if (!expect_c(json, c))
 		report_parsing_error(error_msg);
 }
 
 // skip_ws() skips white space in the file.
-void skip_ws(FILE* json) {
+static void skip_ws(FILE* json) {
 	int c = get_c(json);
 	while (isspace(c)) {
 		c = get_c(json);
@@ -80,18 +98,13 @@ void skip_ws(FILE* json) {
 	unget_c(c, json);
 }
 
-Metafield* new_field(){
-	Metafield* field = malloc(sizeof(Metafield));
-	memset(field, 0, sizeof(*field));
-	return field;
-}
-
 // next_string() gets the next string from the file handle and emits an error
 // if a string can not be obtained.
 char* next_string(FILE* json) {
 	char buffer[129];
 	char c;
-	require_c(json, '"', "Expected string"); 
+	skip_ws(json);
+	require_c(json, '"', "Expected string");
 	c = get_c(json);
 	int i = 0;
 	while (c != '"') {
@@ -160,10 +173,10 @@ void read_key(Metafield* field, FILE* json){
 }
 
 void read_value(Metafield* field, FILE* json){
-	if (expect_c(json, '"')){
+	if (check_c(json, '"')){
 		field->id = STRING;
 		field->val.string = next_string(json);
-	} else if (expect_c(json, '[')){
+	} else if (check_c(json, '[')){
 		field->id = VECTOR;
 		field->val.vector = next_vector(json);
 	} else {
@@ -180,33 +193,33 @@ void read_field(Metafield* field, FILE* json){
 	skip_ws(json);
 	read_value(field, json);
 	skip_ws(json);
-	if(expect_c(json,','))
-		get_c(json);
+	pull_c(json, ',');
 }
 
 Metaobject* read_object(Metaobject* prev, FILE* json){
 	skip_ws(json);
-	if (!expect_c(json, '{')){
+	if (!pull_c(json, '{')){
 		return NULL;
 	}
-
-	printf("Object Read\n");
-	Metaobject* obj = malloc(sizeof(Metaobject));
 	skip_ws(json);
 
+	Metaobject* obj = make_metaobject();
+
 	obj->begin_line = line;
-	prev->next = obj;
+	if (prev != NULL)
+		prev->next = obj;
 	obj->next = NULL;
 	
-	Metafield* field;
-	Metafield* n_field;
-	while(!expect_c(json, '}')){
+	Metafield* field = NULL;
+	Metafield* n_field = NULL;
+	while(!pull_c(json, '}')){
 			
-		n_field = new_field();
+		n_field = make_metafield();
 		if (field == NULL)
 			obj->fields = n_field;
-		else
+		else{
 			field->next = n_field;
+		}
 		
 		field = n_field;
 
@@ -216,8 +229,7 @@ Metaobject* read_object(Metaobject* prev, FILE* json){
 	
 	field->next = NULL;
 	
-	if (expect_c(json, ','))
-		get_c(json);
+	pull_c(json, ',');
 	
 	return obj;
 }
@@ -229,7 +241,6 @@ Metaobject* read_scene(char* filename)  {
 	Metaobject* first = NULL;
 	Metaobject* obj = NULL;
 	do{
-		printf("Begin reading\n");
 		if (first == NULL)
 			first = obj;
 			
