@@ -1,6 +1,7 @@
 raycast
-raycast.exe
 setup.json
+*.o
+*.exe*
 *.ppm
 *#*
 .#*
