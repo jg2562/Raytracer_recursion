@@ -8,28 +8,26 @@
 	{
 		"type": "light",
 		"color": [3, 3, 3],
-		"position": [0, 3, 5],
+		"position": [2, 2, 4],
 		"direction": [0, -1, 0],
 		"radial-a2": 1,
 		"radial-a1": 1,
 		"radial-a0": 1,
-		"angular-a0": 20,
-		"theta": 5
+		"angular-a0": 1
 	},
 	{
 		"type": "light",
-		"color": [8, 8, 8],
-		"position": [-2, 1, 0],
-		"direction": [2, -1, 5],
+		"color": [3, 3, 3],
+		"position": [-2, 2, 4],
+		"direction": [0, -1, 0],
 		"radial-a2": 1,
 		"radial-a1": 1,
 		"radial-a0": 1,
-		"angular-a0": 20,
-		"theta":5 
+		"angular-a0": 1
 	},
 	{
 		"type": "sphere",
-		"diffuse_color": [1, 0, 0],
+		"diffuse_color": [0.0, 0.0, 0.8],
 		"specular_color": [1.0, 1.0, 1.0],
 		"position": [0, 0, 5],
 		"radius": 1
@@ -38,7 +36,7 @@
 		"type": "plane",
 		"diffuse_color": [0.49, 0.75, 0.93],
 		"specular_color": [1, 1, 1],
-		"normal": [0,0,1],
+		"normal": [0,0,-1],
 		"position": [0,0,6]
 	}
 ]
