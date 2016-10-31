@@ -91,6 +91,10 @@ void check_light(Light* l, Metaobject* m_obj){
 	if (l->ang_a0 < 0)
 		report_error_on_line("Invalid angular_a0 on light", m_obj->begin_line);
 
+	if (l->theta != -1 && l->theta < 0)
+		report_error_on_line("Invalid theta on light", m_obj->begin_line);
+		
+
 }
 
 void check_scene(Scene* s){
@@ -170,16 +174,16 @@ Light* get_light(Metaobject* m_obj){
 	
 	sub = get_field_by_name(m_obj, "theta");
 	if (sub == NULL)
-		l->theta = 1;
+		l->theta = -1;
 	else
 		l->theta = cos(sub->val.scalar * M_PI / 180);
 	
-	sub = get_field_by_name(m_obj, "angular_a0");
+	sub = get_field_by_name(m_obj, "angular-a0");
 	if (sub == NULL)
 		l->ang_a0 = 0;
 	else
 		l->ang_a0 = sub->val.scalar;
-
+	
 	check_light(l, m_obj);
 	return l;
 }

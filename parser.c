@@ -236,6 +236,10 @@ Metaobject* read_object(Metaobject* prev, FILE* json){
 
 Metaobject* read_scene(char* filename)  {
 	FILE* json = fopen(filename, "r");
+
+	if (json == NULL)
+		report_error("Unable to open input file");
+	
 	skip_ws(json);
 	require_c(json, '[', "Expected '[' to begin file");
 	Metaobject* first = NULL;

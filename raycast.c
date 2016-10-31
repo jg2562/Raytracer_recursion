@@ -318,12 +318,11 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		add_radial_attenuation(l_color, light, mag_l);
 
 		// Calculates if the theres a spotlight
-		if (light->dir != NULL && light->theta != 1 && light->ang_a0 != 0){
+		if (light->dir != NULL && light->theta != -1 && light->ang_a0 != 0){
 			if (add_angular_attenuation(l_color, light, l_dir, l_color))
 				continue;
 		}
 
-		
 		// Sets up the diffuse color
 		add_diffuse(Id, diff_color, l_color, l_dir, normal); 
 		
@@ -491,7 +490,6 @@ int main(int argc, char* argv[]){
 		fprintf(stderr, "Error: Output file write access.\n");
 		exit(1);
 	}
-
 	Metaobject* meta_objects = read_scene(argv[3]);
 	
 	// Reads in scene file
