@@ -3,7 +3,7 @@ SHELL = /bin/sh
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=gnu99 -Wwrite-strings
 LDFLAGS = -lm
-OUTPUT = raycast
+OUTPUT = raytrace
 IMG_SIZE = 500 500
 INPUT_LOC = ./test_data/input
 OUTPUT_LOC = ./test_data/output_img
