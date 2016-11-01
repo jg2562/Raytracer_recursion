@@ -37,10 +37,10 @@ clear :
 rebuild: clean build
 
 retest: rebuild
-	./$(OUTPUT) $(IMG_SIZE) $(MAIN_JSON) $(patsubst $(INPUT_LOC)/$.json,$(OUTPUT_LOC)/$.ppm, $(MAIN_JSON))
+	./$(OUTPUT) $(IMG_SIZE) $(MAIN_JSON) $(patsubst $(INPUT_LOC)/%.json,$(OUTPUT_LOC)/%.ppm, $(MAIN_JSON))
 
 restest: rebuild
-	./$(OUTPUT) 5 5 $(MAIN_JSON) $(patsubst $(INPUT_LOC)/$.json,$(OUTPUT_LOC)/$.ppm, $(MAIN_JSON))
+	./$(OUTPUT) 5 5 $(MAIN_JSON) $(patsubst $(INPUT_LOC)/%.json,$(OUTPUT_LOC)/%.ppm, $(MAIN_JSON))
 
 reftest: rebuild
 	$(foreach file, $(INPUT_FILES), $(eval $(shell ./$(OUTPUT) $(IMG_SIZE) $(file) $(OUTPUT_LOC)/$(patsubst $(INPUT_LOC)/%.json,%.ppm, $(file)))))
