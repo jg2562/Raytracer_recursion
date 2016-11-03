@@ -10,7 +10,7 @@ static inline void config_drawable_object(DrawableObject* d){
 	d->spec_color = NULL;
 	d->refl= 0;
 	d->refr= 0;
-	d->ior = 0;
+	d->ior = 1;
 }
 
 Plane* make_plane(){

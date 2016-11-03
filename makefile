@@ -7,7 +7,7 @@ OUTPUT = raytrace
 IMG_SIZE = 500 500
 INPUT_LOC = ./test_data/input
 OUTPUT_LOC = ./test_data/output_img
-MAIN_JSON = $(INPUT_LOC)/reflect.json
+MAIN_JSON = $(INPUT_LOC)/refract.json
 
 INPUT_FILES := $(wildcard $(INPUT_LOC)/*)
 SOURCES = $(wildcard ./*.c)

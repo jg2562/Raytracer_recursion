@@ -170,6 +170,7 @@ void get_drawable_normal(double* normal, DrawableObject* o, double* inter){
 	}
 }
 
+void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* self, Light** lights, int depth);
 void add_radial_attenuation(double* output_color, Light* light, double light_dist, double* light_color){
 	double f_rad = 1 / (sqr(light_dist) * light->r_a2 + light_dist * light->r_a1 + light->r_a0);
 	vector_scale(output_color, light_color, f_rad);
@@ -205,6 +206,48 @@ void add_specular(double* output_color, double* obj_color, double* light_color, 
 	vector_scale(sub_color, light_color,pow(dot, SPEC_HIGHLIGHT));
 	vector_multiply(sub_color, sub_color, obj_color);
 	vector_add(output_color, output_color, sub_color);				 
+}
+
+void add_reflection(double* output_color, double* ray_dir, double* ray_inter, double* normal, Object** objects, Object* self, Light** lights, double reflectivity, int depth){
+
+	if (reflectivity > 0){
+		double Rd_reflect[3] = {0};
+		vector_reflect(Rd_reflect, ray_dir, normal);
+	
+		double reflect_color[3] = {0};
+	
+		get_color(reflect_color, ray_inter, Rd_reflect, objects, self, lights, depth-1);
+
+		vector_scale(reflect_color, reflect_color, reflectivity);
+		vector_scale(output_color, output_color, 1 - reflectivity);
+		vector_add(output_color, output_color, reflect_color);
+	}
+
+}
+
+void add_refraction(double* output_color, double* ray_dir, double* ray_inter, double* normal, Object** objects, Object* self, Light** lights, double refractivity, double ior, int depth){
+
+	if (refractivity > 0){
+		double a[3] = {0};
+		double b[3] = {0};
+		vector_cross(a, normal, ray_dir);
+		normalize(a);
+		vector_cross(b, a, normal);
+
+		double inv_ior = 1/ior;
+	
+		double refract_dir[3] = {0};
+		vector_scale(refract_dir, normal, -cos(asin(inv_ior)));
+		vector_scale(b, b, inv_ior);
+		vector_add(refract_dir, refract_dir, b);
+
+		double refract_color[3] = {0};
+		get_color(refract_color, ray_inter, refract_dir, objects, self, lights, depth - 1);
+
+		vector_scale(refract_color, refract_color, refractivity);
+		vector_scale(output_color, output_color, 1 - refractivity);
+		vector_add(output_color, output_color, refract_color);
+	}
 }
 
 /*
@@ -309,6 +352,9 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* 
 		spec_color = draw_o->spec_color;
 		reflectivity = draw_o->refl;
 		refractivity = draw_o->refr;
+		// reflectivity /= tot;
+		// refractivity /= tot;
+		
 		ior = draw_o->ior;
 
 		get_drawable_normal(normal, draw_o, inter);
@@ -365,18 +411,8 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* 
 	vector_add(color, color, Is);
 	//printf("color: %lf %lf %lf\n", color[0], color[1], color[2]);
 	
-	double Rd_reflect[3] = {0};
-	vector_reflect(Rd_reflect, Rd, normal);
-	
-	if (reflectivity > 0){
-		vector_scale(color, color, 1 - reflectivity);
-		double reflect_color[3] = {0};
-	
-		get_color(reflect_color, inter, Rd_reflect, objects, o, lights, depth-1);
-
-		vector_scale(reflect_color, reflect_color, reflectivity);
-		vector_add(color, color, reflect_color);
-	}
+	add_reflection(color, Rd, inter, normal, objects, o, lights, reflectivity, depth);
+	add_refraction(color, Rd, inter, normal, objects, o, lights, refractivity, ior, depth);
 }
 
 /*
