@@ -12,6 +12,12 @@
 #define SPEC_HIGHLIGHT 20
 #define DIFF_FRAC 1
 #define SPEC_FRAC 1
+#define REFLECT_DEPTH 7
+
+static inline int is_drawable(Object* o){
+	return (o->id == 2 || o->id == 3 || o->id == 4);
+}
+	
 
 /*
   Finds sphere intersection point with given ray.
@@ -137,9 +143,36 @@ void get_quadric_normal(double* normal, Quadric* q, double* inter){
 	normalize(normal);
 }
 
-void add_radial_attenuation(double* output_color, Light* light, double light_dist){
-	double f_rad = 1 / (sqr(light_dist) * light->r_a2 + light_dist * light->r_a1 + light->r_a0); 
-	vector_scale(output_color, light->color, f_rad);
+void get_drawable_normal(double* normal, DrawableObject* o, double* inter){
+	switch (o->id){
+	case 2:
+		;
+		// Gets sphere parameters
+		Sphere* s = (Sphere*) o;
+		get_sphere_normal(normal, s, inter);
+		break;
+	case 3:
+		;
+		// Gets plane parameters
+		Plane* p = (Plane*) o;
+		get_plane_normal(normal, p);
+		break;
+	case 4:
+		;
+		// Gets quadric parameters
+		Quadric* q = (Quadric*) o;
+		get_quadric_normal(normal, q, inter);
+		break;
+	default:
+		// Checks if invalid object was passed
+		fprintf(stderr, "Attempted to get non drawable object normal with Id: %d.\n", o->id);
+		exit(1);
+	}
+}
+
+void add_radial_attenuation(double* output_color, Light* light, double light_dist, double* light_color){
+	double f_rad = 1 / (sqr(light_dist) * light->r_a2 + light_dist * light->r_a1 + light->r_a0);
+	vector_scale(output_color, light_color, f_rad);
 }
 
 int add_angular_attenuation(double* output_color, Light* light, double* light_dir, double* light_color){
@@ -238,11 +271,11 @@ Object* cast_ray(double* ray_len, Object** objects, Object* self, double* Ro, do
  * objects: The objects to check through.
  * lights: The lights to check through.
  */
-void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** lights){
+void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* self, Light** lights, int depth){
 	double t = 0;
 
 	// Checks if hits object, otherwise sets to black
-	Object* o = cast_ray(&t, objects, NULL, Ro, Rd);
+	Object* o = cast_ray(&t, objects, self, Ro, Rd);
 	if (o == NULL){
 		color[0] = 0;
 		color[1] = 0;
@@ -252,6 +285,9 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	
 	double* diff_color;
 	double* spec_color;
+	double reflectivity;
+	double refractivity;
+	double ior;
 	double inter[3] = {0,0,0};
 	double normal[3] = {0,0,0};
 	// Global ambient color
@@ -261,39 +297,26 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 	color[1] = AMB_COLOR[1]; 
 	color[2] = AMB_COLOR[2]; 
 
+	if (depth <= 0)
+		return;
+	
 	// Gets the intersection vector
 	get_intersection(inter, Ro, Rd, t);
-	switch (o->id){
-	case 2:
-		;
-		// Gets sphere parameters
-		Sphere* s = (Sphere*) o;
-		get_sphere_normal(normal, s, inter);
-		diff_color = s->diff_color;
-		spec_color = s->spec_color;
-		break;
-	case 3:
-		;
-		// Gets plane parameters
-		Plane* p = (Plane*) o;
-		get_plane_normal(normal, p);
-		diff_color = p->diff_color;
-		spec_color = p->spec_color;
-		break;
-	case 4:
-		;
-		// Gets quadric parameters
-		Quadric* q = (Quadric*) o;
-		get_quadric_normal(normal, q, inter);
-		diff_color = q->diff_color;
-		spec_color = q->spec_color;
-		break;
-	default:
-		// Checks if invalid object was passed
+
+	if (is_drawable(o)){
+		DrawableObject* draw_o = (DrawableObject*) o;
+		diff_color = draw_o->diff_color;
+		spec_color = draw_o->spec_color;
+		reflectivity = draw_o->refl;
+		refractivity = draw_o->refr;
+		ior = draw_o->ior;
+
+		get_drawable_normal(normal, draw_o, inter);
+	} else {
 		fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", o->id);
 		exit(1);
 	}
-
+	
 	// Goes through lights to find shading
 	double l_dir[3] = {0,0,0};
 	double Id[3] = {0,0,0};
@@ -315,27 +338,45 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Light** 
 		}
 
 		// Finds the strength of the light and scales the lights color
-		add_radial_attenuation(l_color, light, mag_l);
+		add_radial_attenuation(l_color, light, mag_l, light->color);
 
 		// Calculates if the theres a spotlight
 		if (light->dir != NULL && light->theta != -1 && light->ang_a0 != 0){
+			printf("Spotlight\n");
 			if (add_angular_attenuation(l_color, light, l_dir, l_color))
 				continue;
 		}
-
+		
 		// Sets up the diffuse color
 		add_diffuse(Id, diff_color, l_color, l_dir, normal); 
 		
 		// Sets up the specular color 
 		add_specular(Id, spec_color, l_color, l_dir, normal, Rd); 
 	}
+
+	
 	// Adds the diffuse color
 	vector_scale(Id, Id, DIFF_FRAC);
 	vector_add(color, color, Id);
+	//printf("color: %lf %lf %lf\n", color[0], color[1], color[2]);
 
 	// Adds the specular color
 	vector_scale(Is, Is, SPEC_FRAC);
 	vector_add(color, color, Is);
+	//printf("color: %lf %lf %lf\n", color[0], color[1], color[2]);
+	
+	double Rd_reflect[3] = {0};
+	vector_reflect(Rd_reflect, Rd, normal);
+	
+	if (reflectivity > 0){
+		vector_scale(color, color, 1 - reflectivity);
+		double reflect_color[3] = {0};
+	
+		get_color(reflect_color, inter, Rd_reflect, objects, o, lights, depth-1);
+
+		vector_scale(reflect_color, reflect_color, reflectivity);
+		vector_add(color, color, reflect_color);
+	}
 }
 
 /*
@@ -381,7 +422,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 			// Casts ray
 			double color[3] = {0,0,0};
 
-			get_color(color, Ro, Rd, objects, scene->lights);
+			get_color(color, Ro, Rd, objects, NULL, scene->lights, REFLECT_DEPTH);
 
 			// Gets object color for pixel
 			Pixel pix;
