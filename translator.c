@@ -22,7 +22,9 @@ Metafield* get_field_by_name(Metaobject* obj, const char* name){
 Metafield* require_field_by_name(Metaobject* obj, const char* name){
 	Metafield* field = get_field_by_name(obj, name);
 	if (field == NULL){
-		report_error_on_line("Required %s missing in %s", obj->begin_line);
+		char error_msg[strlen(name) + strlen(obj->type) + 34];
+		sprintf(error_msg, "Required %s field missing in %s", name, obj->type);
+		report_error_on_line(error_msg, obj->begin_line);
 	}
 
 	return field;
@@ -117,35 +119,37 @@ Camera* get_camera(Metaobject* m_obj){
 	return c;
 }
 
+void fill_drawable(DrawableObject* o, Metaobject* m_obj){
+	o->pos = require_field_by_name(m_obj, "position")->val.vector;
+	o->diff_color = require_field_by_name(m_obj, "diffuse_color")->val.vector;
+	o->spec_color = require_field_by_name(m_obj, "specular_color")->val.vector;
+	o->refl = require_field_by_name(m_obj, "reflectivity")->val.scalar;
+	o->refr = require_field_by_name(m_obj, "refractivity")->val.scalar;
+	o->ior = require_field_by_name(m_obj, "ior")->val.scalar;
+}
+
 Sphere* get_sphere(Metaobject* m_obj){
-	Sphere* s = malloc(sizeof(Sphere));
-	s->id = 2;
-	s->pos = require_field_by_name(m_obj, "position")->val.vector;
-	s->diff_color = require_field_by_name(m_obj, "diffuse_color")->val.vector;
-	s->spec_color = require_field_by_name(m_obj, "specular_color")->val.vector;
+	Sphere* s = make_sphere();
+	fill_drawable((DrawableObject*) s, m_obj);
 	s->radius = require_field_by_name(m_obj, "radius")->val.scalar;
 	check_sphere(s, m_obj);
 	return s;
 }
 
 Plane* get_plane(Metaobject* m_obj){
-	Plane* p = malloc(sizeof(Plane));
-	p->id = 3;
-	p->pos = require_field_by_name(m_obj, "position")->val.vector;
-	p->diff_color = require_field_by_name(m_obj, "diffuse_color")->val.vector;
-	p->spec_color = require_field_by_name(m_obj, "specular_color")->val.vector;
+	Plane* p = make_plane();
+	fill_drawable((DrawableObject*) p, m_obj);
 	p->normal = require_field_by_name(m_obj, "normal")->val.vector;
+	
 	normalize(p->normal);
 	check_plane(p, m_obj);
 	return p;
 }
 
 Quadric* get_quadric(Metaobject* m_obj){
-	Quadric* q = malloc(sizeof(Quadric));
-	q->id = 4;
-	q->pos = require_field_by_name(m_obj, "position")->val.vector;
-	q->diff_color = require_field_by_name(m_obj, "diffuse_color")->val.vector;
-	q->spec_color = require_field_by_name(m_obj, "specular_color")->val.vector;
+	Quadric* q = make_quadric();
+	fill_drawable((DrawableObject*) q, m_obj);
+	
 	double coefs[10] = {0};
 	get_quadric_coefs(m_obj,coefs);
 	for (int i = 0; i < 10; i++)
@@ -155,8 +159,7 @@ Quadric* get_quadric(Metaobject* m_obj){
 }
 
 Light* get_light(Metaobject* m_obj){
-	Light* l = malloc(sizeof(Light));
-	l->id = 5;
+	Light* l = make_light();
 	l->pos = require_field_by_name(m_obj, "position")->val.vector;
 	l->color = require_field_by_name(m_obj, "color")->val.vector;
 	l->r_a0 = require_field_by_name(m_obj, "radial-a0")->val.scalar;

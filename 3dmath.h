@@ -8,7 +8,6 @@ static inline double sqr(double v) {
 
 static inline double mag(double* v){
 	return sqrt(sqr(v[0]) + sqr(v[1]) + sqr(v[2]));
-	
 }
 
 // Vector normalization

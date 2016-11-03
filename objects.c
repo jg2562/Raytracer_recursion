@@ -4,32 +4,35 @@
 #include "objects.h"
 #include "structures.h"
 
-Object* make_plane(){
+static inline void config_drawable_object(DrawableObject* d){
+	d->pos = NULL;
+	d->diff_color = NULL;
+	d->spec_color = NULL;
+	d->refl= 0;
+	d->refr= 0;
+	d->ior = 0;
+}
+
+Plane* make_plane(){
 	Plane* p = malloc(sizeof(Plane));
 	p->id = 3;
-	p->pos = NULL;
-	p->diff_color = NULL;
-	p->spec_color = NULL;
+	config_drawable_object((DrawableObject*) p);
 	p->normal = NULL;
-	return (Object*) p;
+	return p;
 }
 
-Object* make_sphere(){
+Sphere* make_sphere(){
 	Sphere* s = malloc(sizeof(Sphere));
 	s->id = 2;
-	s->pos = NULL;
-	s->diff_color = NULL;
-	s->spec_color = NULL;
+	config_drawable_object((DrawableObject*) s);
 	s->radius = -1;
-	return (Object*) s;
+	return s;
 }
 
-Object* make_quadric(){
+Quadric* make_quadric(){
 	Quadric* q = malloc(sizeof(Quadric));
 	q->id = 4;
-	q->pos = NULL;
-	q->diff_color = NULL;
-	q->spec_color = NULL;
+	config_drawable_object((DrawableObject*) q);
 	q->A = -INFINITY;
 	q->B = -INFINITY;
 	q->C = -INFINITY;
@@ -40,10 +43,10 @@ Object* make_quadric(){
 	q->H = -INFINITY;
 	q->I = -INFINITY;
 	q->J = -INFINITY;
-	return (Object*) q;
+	return q;
 }
 
-Object* make_light(){
+Light* make_light(){
 	Light* l = malloc(sizeof(Light));
 	l->id = 5;
 	l->pos = NULL;
@@ -55,7 +58,7 @@ Object* make_light(){
 	l->theta = 0;
 	l->ang_a0 = 0;
 	l->theta = 0;
-	return (Object*) l;
+	return l;
 }
 
 Scene* make_scene(){
@@ -69,11 +72,13 @@ Metaobject* make_metaobject(){
 	Metaobject* mobj = malloc(sizeof(Metaobject));
 	memset(mobj, 0, sizeof(*mobj));
 	mobj->begin_line = -1;
+	// FILL IN TYPE FIELD
+	mobj->type = malloc(sizeof(char));
+	*mobj->type = 0;
 	return mobj;
 }
 
 Metafield* make_metafield(){
-	
 	Metafield* mf = malloc(sizeof(Metafield));
 	mf->line_num = -1;
 	return mf;

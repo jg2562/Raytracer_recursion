@@ -4,6 +4,7 @@
 // Blank structure
 typedef struct {
 	int id; // ID: 0
+
 } Object;
 
 typedef struct {
@@ -11,6 +12,9 @@ typedef struct {
 	double* pos;
 	double* diff_color;
 	double* spec_color;
+	double refl;
+	double refr;
+	double ior;
 } DrawableObject;
 
 // Different object structure
@@ -25,6 +29,9 @@ typedef struct {
 	double* pos;
 	double* diff_color;
 	double* spec_color;
+	double reflectivity;
+	double refractivity;
+	double ior;
 	double radius;
 } Sphere;
 
@@ -33,6 +40,9 @@ typedef struct {
 	double* pos;
 	double* diff_color;
 	double* spec_color;
+	double reflectivity;
+	double refractivity;
+	double ior;
 	double* normal;
 } Plane;
 
@@ -42,6 +52,9 @@ typedef struct {
 	double* pos;
 	double* diff_color;
 	double* spec_color;
+	double reflectivity;
+	double refractivity;
+	double ior;
 	double A;
 	double B;
 	double C;
@@ -95,6 +108,7 @@ struct Metafield{
 
 
 struct Metaobject{
+	// FILL IN TYPE FIELD
 	int begin_line;
 	char* type;
 	Metaobject* next;
