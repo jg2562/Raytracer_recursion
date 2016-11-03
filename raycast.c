@@ -219,7 +219,6 @@ void add_reflection(double* output_color, double* ray_dir, double* ray_inter, do
 		get_color(reflect_color, ray_inter, Rd_reflect, objects, self, lights, depth-1);
 
 		vector_scale(reflect_color, reflect_color, reflectivity);
-		vector_scale(output_color, output_color, 1 - reflectivity);
 		vector_add(output_color, output_color, reflect_color);
 	}
 
@@ -234,18 +233,19 @@ void add_refraction(double* output_color, double* ray_dir, double* ray_inter, do
 		normalize(a);
 		vector_cross(b, a, normal);
 
+		
 		double inv_ior = 1/ior;
-	
+		double sin_ior = inv_ior * vector_dot(ray_dir, b);
+		double cos_ior = sqrt(1 - sqr(sin_ior));
 		double refract_dir[3] = {0};
-		vector_scale(refract_dir, normal, -cos(asin(inv_ior)));
-		vector_scale(b, b, inv_ior);
+		vector_scale(refract_dir, normal, -cos_ior);
+		vector_scale(b, b, sin_ior);
 		vector_add(refract_dir, refract_dir, b);
 
 		double refract_color[3] = {0};
 		get_color(refract_color, ray_inter, refract_dir, objects, self, lights, depth - 1);
 
 		vector_scale(refract_color, refract_color, refractivity);
-		vector_scale(output_color, output_color, 1 - refractivity);
 		vector_add(output_color, output_color, refract_color);
 	}
 }
@@ -404,13 +404,21 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* 
 	// Adds the diffuse color
 	vector_scale(Id, Id, DIFF_FRAC);
 	vector_add(color, color, Id);
-	//printf("color: %lf %lf %lf\n", color[0], color[1], color[2]);
 
 	// Adds the specular color
 	vector_scale(Is, Is, SPEC_FRAC);
 	vector_add(color, color, Is);
-	//printf("color: %lf %lf %lf\n", color[0], color[1], color[2]);
+
+	// Book equations... maybe use them at some point?
+	/*
+	double RO = sqr((ior - 1)/(ior + 1));
+	double Rd_r[3] = {0};
+	vector_scale(Rd_r, Rd, -1);
+	double Rd_normal_dot = vector_dot(Rd_r, normal);
+	double R_theta = RO + (1 - RO) * quintuple(1 - Rd_normal_dot);
+	*/
 	
+	vector_scale(color, color, 1 - (reflectivity + refractivity));
 	add_reflection(color, Rd, inter, normal, objects, o, lights, reflectivity, depth);
 	add_refraction(color, Rd, inter, normal, objects, o, lights, refractivity, ior, depth);
 }

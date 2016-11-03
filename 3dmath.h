@@ -2,6 +2,11 @@
 #ifndef VECTOR_MATH_HEADER_INCLUDED
 #define VECTOR_MATH_HEADER_INCLUDED
 // Square function
+
+static inline double quintuple(double v){
+	return v * v * v * v * v;
+}
+
 static inline double sqr(double v) {
 	return v*v;
 }

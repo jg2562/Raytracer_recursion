@@ -26,6 +26,16 @@
 		"radius": 1
 	},
 	{
+		"type": "sphere",
+		"diffuse_color": [1, 0, 0],
+		"specular_color": [1, 1, 1],
+		"reflectivity": 0,
+		"refractivity": 0,
+		"ior": 1,
+		"position": [0, 0, -1],
+		"radius": 1
+	},
+	{
 		"type": "plane",
 		"diffuse_color": [0.5, 0.5, 1],
 		"specular_color": [1, 1, 1],
@@ -33,7 +43,7 @@
 		"refractivity": 0,
 		"ior": 0,
 		"normal": [0,0,-1],
-		"position": [0, 0, 50]
+		"position": [0,0,50]
 	},
 	{
 		"type": "plane",
