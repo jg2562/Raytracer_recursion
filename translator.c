@@ -47,6 +47,26 @@ int check_color(double* color){
 		color[2] < 0 || color[2] > 1; 
 }
 
+void check_drawable(DrawableObject* d, Metaobject* m_obj){
+	if (check_color(d->diff_color))
+		report_error_on_line("Invalid diffuse color", m_obj->begin_line);
+
+	if (check_color(d->spec_color))
+		report_error_on_line("Invalid specular color", m_obj->begin_line);
+
+	if (d->refl < 0 || d->refl > 1)
+		report_error_on_line("Invalid reflective properly", m_obj->begin_line);
+		
+	if (d->refr < 0 || d->refr > 1)
+		report_error_on_line("Invalid refractive properly", m_obj->begin_line);
+
+	if (d->ior < 1)
+		report_error_on_line("Invalid Index of Refraction properly", m_obj->begin_line);
+
+	if ((d->refl + d->refr) > 1)
+		report_error("Reflective properly and Refractive properly greater than 1");
+}
+
 void check_camera(Camera* c, Metaobject* m_obj){
 	if (c->width < 0)
 		report_error_on_line("Invalid width in camera", m_obj->begin_line);
@@ -55,12 +75,7 @@ void check_camera(Camera* c, Metaobject* m_obj){
 }
 
 void check_sphere(Sphere* s, Metaobject* m_obj){
-
-	if (check_color(s->diff_color))
-		report_error_on_line("Invalid diffuse color on sphere", m_obj->begin_line);
-
-	if (check_color(s->spec_color))
-		report_error_on_line("Invalid specular color on sphere", m_obj->begin_line);
+	check_drawable((DrawableObject*) s, m_obj);
 
 	if (s->radius <= 0)
 		report_error_on_line("Invalid radius on sphere", m_obj->begin_line);
@@ -68,21 +83,11 @@ void check_sphere(Sphere* s, Metaobject* m_obj){
 }
 
 void check_plane(Plane* p, Metaobject* m_obj){
-
-	if (check_color(p->diff_color))
-		report_error_on_line("Invalid diffuse color on plane", m_obj->begin_line);
-
-	if (check_color(p->spec_color))
-		report_error_on_line("Invalid specular color on plane", m_obj->begin_line);
+	check_drawable((DrawableObject*) p, m_obj);
 }
 
 void check_quadric(Quadric* q, Metaobject* m_obj){
-
-	if (check_color(q->diff_color))
-		report_error_on_line("Invalid diffuse color on plane", m_obj->begin_line);
-
-	if (check_color(q->spec_color))
-		report_error_on_line("Invalid specular color on plane", m_obj->begin_line);
+	check_drawable((DrawableObject*) q, m_obj);
 }
 
 void check_light(Light* l, Metaobject* m_obj){
@@ -95,7 +100,6 @@ void check_light(Light* l, Metaobject* m_obj){
 
 	if (l->theta != -1 && l->theta < 0)
 		report_error_on_line("Invalid theta on light", m_obj->begin_line);
-		
 
 }
 
