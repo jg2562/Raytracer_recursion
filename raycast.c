@@ -219,7 +219,7 @@ void add_reflection(double* output_color, double* ray_dir, double* ray_inter, do
 	
 		double reflect_color[3] = {0};
 	
-		get_color(reflect_color, ray_inter, Rd_reflect, objects, self, lights, depth-1);
+		get_color(reflect_color, ray_inter, Rd_reflect, objects, self, lights, depth + 1);
 
 		vector_scale(reflect_color, reflect_color, reflectivity);
 		vector_add(output_color, output_color, reflect_color);
@@ -246,7 +246,7 @@ void add_refraction(double* output_color, double* ray_dir, double* ray_inter, do
 		vector_add(refract_dir, refract_dir, b);
 
 		double refract_color[3] = {0};
-		get_color(refract_color, ray_inter, refract_dir, objects, self, lights, depth - 1);
+		get_color(refract_color, ray_inter, refract_dir, objects, self, lights, depth + 1);
 
 		vector_scale(refract_color, refract_color, refractivity);
 		vector_add(output_color, output_color, refract_color);
@@ -343,7 +343,7 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* 
 	color[1] = AMB_COLOR[1]; 
 	color[2] = AMB_COLOR[2]; 
 
-	if (depth <= 0)
+	if (depth > REFLECT_DEPTH)
 		return;
 	
 	// Gets the intersection vector
@@ -469,7 +469,7 @@ Image* paint_scene(Scene* scene, int height, int width) {
 			// Casts ray
 			double color[3] = {0,0,0};
 
-			get_color(color, Ro, Rd, objects, NULL, scene->lights, REFLECT_DEPTH);
+			get_color(color, Ro, Rd, objects, NULL, scene->lights, 0);
 
 			// Gets object color for pixel
 			Pixel pix;
