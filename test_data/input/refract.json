@@ -19,10 +19,10 @@
 		"type": "sphere",
 		"diffuse_color": [0, 0, 1],
 		"specular_color": [1, 1, 1],
-		"reflectivity": 0.3,
-		"refractivity": 0.5,
-		"ior": 1.05,
-		"position": [0, 0, 5],
+		"reflectivity": 0.0,
+		"refractivity": 1,
+		"ior": 1,
+		"position": [0, 1, 5],
 		"radius": 1
 	},
 	{
@@ -31,7 +31,7 @@
 		"specular_color": [1, 1, 1],
 		"reflectivity": 0,
 		"refractivity": 0,
-		"ior": 0,
+		"ior": 1,
 		"normal": [0,0,-1],
 		"position": [0, 0, 50]
 	},
@@ -41,7 +41,7 @@
 		"specular_color": [1, 1, 1],
 		"reflectivity": 0,
 		"refractivity": 0,
-		"ior": 0,
+		"ior": 1,
 		"normal": [0,1,0],
 		"position": [0,-2,0]
 	}
