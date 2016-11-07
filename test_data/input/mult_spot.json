@@ -32,6 +32,9 @@
 		"diffuse_color": [1, 0, 0],
 		"specular_color": [1.0, 1.0, 1.0],
 		"position": [0, 0, 5],
+		"reflectivity": 0,
+		"refractivity": 0,
+		"ior": 1,
 		"radius": 1
 	},
 	{
@@ -39,6 +42,9 @@
 		"diffuse_color": [0.49, 0.75, 0.93],
 		"specular_color": [1, 1, 1],
 		"normal": [0,0,1],
+		"reflectivity": 0,
+		"refractivity": 0,
+		"ior": 1,
 		"position": [0,0,6]
 	}
 ]

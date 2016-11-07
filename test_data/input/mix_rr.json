@@ -41,7 +41,7 @@
 		"specular_color": [1, 1, 1],
 		"reflectivity": 0,
 		"refractivity": 0,
-		"ior": 0,
+		"ior": 1,
 		"normal": [0,0,-1],
 		"position": [0,0,50]
 	},
@@ -51,7 +51,7 @@
 		"specular_color": [1, 1, 1],
 		"reflectivity": 0,
 		"refractivity": 0,
-		"ior": 0,
+		"ior": 1,
 		"normal": [0,1,0],
 		"position": [0,-2,0]
 	}
