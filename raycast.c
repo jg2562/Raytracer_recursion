@@ -391,7 +391,6 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* 
 
 		// Calculates if the theres a spotlight
 		if (light->dir != NULL && light->theta != -1 && light->ang_a0 != 0){
-			printf("Spotlight\n");
 			if (add_angular_attenuation(l_color, light, l_dir, l_color))
 				continue;
 		}
