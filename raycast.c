@@ -112,6 +112,29 @@ static inline void get_intersection(double* intersection, double* Ro, double* Rd
 	intersection[2] = Ro[2] + Rd[2] * t;
 }
 
+void get_drawable_intersection(double* t, double* Ro, double* Rd, Object* o){
+
+		switch(o->id) {
+		case 2 :
+			;
+			Sphere* s = (Sphere*) o;
+			*t = sphere_intersection(Ro, Rd, s);
+			break;
+		case 3 :
+			;
+			Plane* p = (Plane*) o;
+			*t = plane_intersection(Ro, Rd, p);
+			break;
+		case 4:
+			;
+			Quadric* q = (Quadric*) o;
+			*t = quadric_intersection(Ro, Rd, q);
+			break;
+		default:
+			fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", o->id);
+			exit(1);
+		}
+}
 /*
  * Returns the sphere normal at the intersect.
  * normal: The output normal
@@ -227,26 +250,49 @@ void add_reflection(double* output_color, double* ray_dir, double* ray_inter, do
 
 }
 
+void refract_vector(double* refract_dir, double* normal, double* ray_dir, double ior){
+	double a[3] = {0};
+	double b[3] = {0};
+	vector_cross(a, normal, ray_dir);
+	normalize(a);
+	vector_cross(b, a, normal);
+
+		
+	double inv_ior = 1/ior;
+	double sin_ior = inv_ior * vector_dot(ray_dir, b);
+	double cos_ior = sqrt(1 - sqr(sin_ior));
+	vector_scale(refract_dir, normal, -cos_ior);
+	vector_scale(b, b, sin_ior);
+	vector_add(refract_dir, refract_dir, b);
+}
+
 void add_refraction(double* output_color, double* ray_dir, double* ray_inter, double* normal, Object** objects, Object* self, Light** lights, double refractivity, double ior, int depth){
 
 	if (refractivity > 0){
-		double a[3] = {0};
-		double b[3] = {0};
-		vector_cross(a, normal, ray_dir);
-		normalize(a);
-		vector_cross(b, a, normal);
-
-		
-		double inv_ior = 1/ior;
-		double sin_ior = inv_ior * vector_dot(ray_dir, b);
-		double cos_ior = sqrt(1 - sqr(sin_ior));
 		double refract_dir[3] = {0};
-		vector_scale(refract_dir, normal, -cos_ior);
-		vector_scale(b, b, sin_ior);
-		vector_add(refract_dir, refract_dir, b);
 
+		refract_vector(refract_dir, normal, ray_dir, ior);
+
+
+		double t = 0;
+		double o_inter[3] = {ray_inter[0], ray_inter[1], ray_inter[2]};
+		get_drawable_intersection(&t, ray_inter, refract_dir, self);
+		
+		if (t != -1){
+			get_intersection(o_inter, ray_inter, refract_dir, t);
+
+			double o_normal[3] = {0};
+			get_drawable_normal(o_normal, (DrawableObject*) self, o_inter);
+			vector_scale(o_normal, o_normal, -1);
+			refract_vector(refract_dir, o_normal, ray_dir, ior);
+
+			get_intersection(o_inter, ray_inter, refract_dir, t+0.00001);
+			
+		}
+		
+		
 		double refract_color[3] = {0};
-		get_color(refract_color, ray_inter, refract_dir, objects, self, lights, depth + 1);
+		get_color(refract_color, o_inter, refract_dir, objects, NULL, lights, depth + 1);
 
 		vector_scale(refract_color, refract_color, refractivity);
 		vector_add(output_color, output_color, refract_color);
@@ -270,27 +316,8 @@ Object* cast_ray(double* ray_len, Object** objects, Object* self, double* Ro, do
 		double t = 0;
 		if (self == objects[i])
 			continue;
+		get_drawable_intersection(&t, Ro, Rd, objects[i]);
 		// Determines what type of object intersection test needs to be performed
-		switch(objects[i]->id) {
-		case 2 :
-			;
-			Sphere* s = (Sphere*) objects[i];
-			t = sphere_intersection(Ro, Rd,	s);
-			break;
-		case 3 :
-			;
-			Plane* p = (Plane*) objects[i];
-			t = plane_intersection(Ro, Rd, p);
-			break;
-		case 4:
-			;
-			Quadric* q = (Quadric*) objects[i];
-			t = quadric_intersection(Ro, Rd, q);
-			break;
-		default:
-			fprintf(stderr, "Unsupported object during rendering with Id: %d.\n", objects[i]->id);
-			exit(1);
-		}
 		// If distance is shorter, replace it
 		if (t > 0 && t < best_t){
 			best_t = t;
@@ -419,7 +446,8 @@ void get_color(double* color, double* Ro, double* Rd, Object** objects, Object* 
 	double Rd_normal_dot = vector_dot(Rd_r, normal);
 	double R_theta = RO + (1 - RO) * quintuple(1 - Rd_normal_dot);
 	*/
-	
+
+	get_intersection(inter, Ro, Rd, t+0.000001);
 	vector_scale(color, color, 1 - (reflectivity + refractivity));
 	add_reflection(color, Rd, inter, normal, objects, o, lights, reflectivity, depth);
 	add_refraction(color, Rd, inter, normal, objects, o, lights, refractivity, ior, depth);
