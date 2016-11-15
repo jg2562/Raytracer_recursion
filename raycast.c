@@ -284,7 +284,7 @@ void add_refraction(double* output_color, double* ray_dir, double* ray_inter, do
 			double o_normal[3] = {0};
 			get_drawable_normal(o_normal, (DrawableObject*) self, o_inter);
 			vector_scale(o_normal, o_normal, -1);
-			refract_vector(refract_dir, o_normal, ray_dir, ior);
+			refract_vector(refract_dir, o_normal, ray_dir, 1/ior);
 
 			get_intersection(o_inter, ray_inter, refract_dir, t+0.00001);
 			
