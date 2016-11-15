@@ -3,6 +3,7 @@ SHELL = /bin/sh
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=gnu99 -Wwrite-strings
 LDFLAGS = -lm
+OPTFLAG= -O3
 OUTPUT = raytrace
 IMG_SIZE = 500 500
 INPUT_LOC = ./test_data/input
@@ -48,3 +49,6 @@ reftest: rebuild
 debug: clean
 	$(CC) $(SOURCES) -o $(OUTPUT) $(CFLAGS) $(LDFLAGS) -g
 	gdb ./$(OUTPUT)
+
+optimize: clean 
+	$(CC) $(SOURCES) -o $(OUTPUT) $(CFLAGS) $(LDFLAGS) $(OPTFLAG)
