@@ -16,3 +16,10 @@ output.ppm: the output file to write the image to.
 This now can use pretty nice shading rendering along with shadow casting. It also allows for quadric rendering, even though it wasn't a requirement
 
 Awesome project! Can't wait for recursion
+
+
+TODO:
+Add Proper refraction using a ray cast
+Add threading w/ thread pool
+Add shadow refraction
+Add view plane movement
