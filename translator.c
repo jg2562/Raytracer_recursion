@@ -127,9 +127,28 @@ void fill_drawable(DrawableObject* o, Metaobject* m_obj){
 	o->pos = require_field_by_name(m_obj, "position")->val.vector;
 	o->diff_color = require_field_by_name(m_obj, "diffuse_color")->val.vector;
 	o->spec_color = require_field_by_name(m_obj, "specular_color")->val.vector;
-	o->refl = require_field_by_name(m_obj, "reflectivity")->val.scalar;
-	o->refr = require_field_by_name(m_obj, "refractivity")->val.scalar;
-	o->ior = require_field_by_name(m_obj, "ior")->val.scalar;
+
+	Metafield* sub;
+
+	sub = get_field_by_name(m_obj, "refractivity");
+	if (sub != NULL)
+		o->refr = sub->val.scalar;
+	else
+		o->refl = 0;
+	
+	sub = get_field_by_name(m_obj, "reflectivity");
+	if (sub != NULL)
+		o->refl = sub->val.scalar;
+	else
+		o->refl = 0;
+
+	sub = get_field_by_name(m_obj, "ior");
+	if (sub != NULL)
+		o->ior = sub->val.scalar;
+	else
+		o->ior = 1;
+
+	
 }
 
 Sphere* get_sphere(Metaobject* m_obj){
