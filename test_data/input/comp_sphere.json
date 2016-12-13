@@ -1,0 +1,23 @@
+[
+    {
+	"type": "camera",
+	"width": 1,
+	"height": 1,
+    },
+    {
+	"type": "sphere",
+	"radius": 2.0,
+	"diffuse_color": [1, 0, 0],
+	"specular_color": [1, 1, 1],
+	"position": [0, 0, 7]
+    },
+    {
+	"type": "light",
+	"color": [2, 2, 2],
+	"theta": 0,
+	"radial-a2": 0,
+	"radial-a1": 0,
+	"radial-a0": 1,
+	"position": [0, 0, 0]
+    }
+]
